@@ -61,18 +61,18 @@ jobs:
 
       - name: Bundle files
         run: |
-          mkdir -p ./temp/ox_core/common
-          cp ./{LICENSE,README.md,fxmanifest.lua} ./temp/ox_core
-          cp -r ./{lib,locales,sql,dist} ./temp/ox_core
-          cp -r ./common/data ./temp/ox_core/common/data
-          cd ./temp && zip -r ../ox_core.zip ./ox_core
+          mkdir -p ./temp/rgo_core/common
+          cp ./{LICENSE,README.md,fxmanifest.lua} ./temp/rgo_core
+          cp -r ./{lib,locales,sql,dist} ./temp/rgo_core
+          cp -r ./common/data ./temp/rgo_core/common/data
+          cd ./temp && zip -r ../rgo_core.zip ./rgo_core
 
       - name: Create release
         uses: 'marvinpinto/action-automatic-releases@v1.2.1'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
-          files: ox_core.zip
+          files: rgo_core.zip
 
       - name: Update tag
         uses: EndBug/latest-tag@v1
