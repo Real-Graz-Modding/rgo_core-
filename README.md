@@ -17,6 +17,16 @@ A modern FiveM framework.
 - 🛤️ [Cfx.re](https://forum.cfx.re/t/pre-release-ox-core-player-and-vehicle-management/5253275)
   - See our release thread for discussions or other information.
 
+## rgo_esx – ESX Compatibility Layer
+
+`rgo_esx` is an **optional companion resource** that ships with this repository.
+It provides an ESX 9.0.2.0-compatible API surface so that existing ESX scripts
+can run without modification while the underlying core transitions away from
+`es_extended`.
+
+See **[`rgo_esx/README.md`](rgo_esx/README.md)** for installation instructions,
+the full compatibility matrix, and the development roadmap.
+
 ## Third-party resources
 
 When releasing a resource using the this framework _do not use the ox prefix_. This creates confusion about the creator of the resource, and causes conflicts between similarly named resources.
