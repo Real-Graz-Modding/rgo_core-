@@ -42,7 +42,7 @@ tasks:
 
   ## rgo_core (Haupt-Framework)
   - action: download_file
-    url: https://github.com/Real-Graz-Modding/rgo_core-/releases/latest/download/ox_core.zip
+    url: https://github.com/Real-Graz-Modding/rgo_core-/releases/latest/download/rgo_core.zip
     path: ./tmp/ox_core.zip
   - action: unzip
     src: ./tmp/ox_core.zip
