@@ -75,7 +75,8 @@ end)
 -- ─── ESX Shared Object (client) ───────────────────────────────────────────────
 
 local ESX = {
-    version = '9.0.2.0-rgo_esx',
+    -- ESX version string – reported by ox_lib version checks (must be >= 1.6.0)
+    version = '1.9.4',
 
     -- Populated after esx:playerLoaded
     PlayerLoaded = false,

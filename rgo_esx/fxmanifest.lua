@@ -1,10 +1,10 @@
 fx_version 'cerulean'
 game 'gta5'
 
-name 'rgo_esx'
+name 'es_extended'
 author 'Real-Graz-Modding'
-description 'ESX compatibility layer for rgo_core'
-version '1.0.0'
+description 'ESX compatibility layer for rgo_core (es_extended shim)'
+version '1.9.4'
 
 dependencies {
   '/server:12913',

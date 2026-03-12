@@ -50,12 +50,12 @@ tasks:
       - ./resources/[rgo]/ox_core/sql/install.sql
   - action: query_database
     file: ./resources/[rgo]/ox_core/sql/install.sql
-  ## rgo_esx – ESX-Kompatibilitäts-Layer
+  ## rgo_esx – ESX-Kompatibilitäts-Layer (als es_extended installiert)
   - action: download_github
     src: https://github.com/Real-Graz-Modding/rgo_core-
     ref: main
     subpath: rgo_esx
-    dest: ./resources/[rgo]/rgo_esx
+    dest: ./resources/[rgo]/es_extended
   ## rgo_qb – QBCore-Kompatibilitäts-Layer
   - action: download_github
     src: https://github.com/Real-Graz-Modding/rgo_core-
