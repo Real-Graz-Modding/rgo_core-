@@ -5,7 +5,6 @@ name: rgo_core
 version: 1.0.0
 author: Real-Graz-Modding
 description: Das offizielle txAdmin-Rezept für rgo_core – installiert das Framework inklusive oxmysql, ox_lib, ox_inventory und den Kompatibilitäts-Layern rgo_esx / rgo_qb.
-
 tasks:
   ## server.cfg-Vorlage aus dem Repository holen
   - action: download_github
@@ -13,25 +12,20 @@ tasks:
     ref: main
     subpath: recipe
     dest: ./tmp/rgo_recipe
-
   - action: move_path
     src: ./tmp/rgo_recipe/server.cfg
     dest: ./server.cfg
-
   - action: replace_string
     mode: all_vars
     file:
       - ./server.cfg
-
   - action: connect_database
-
   ## Standard CFX-Ressourcen (spawnmanager, basic-gamemode, etc.)
   - action: download_github
     src: https://github.com/citizenfx/cfx-server-data
     ref: master
     subpath: resources
     dest: ./resources/[cfx]
-
   ## screenshot-basic
   - action: download_file
     url: https://github.com/project-error/screenshot-basic/releases/download/1.0.1/screenshot-basic.zip
@@ -39,42 +33,35 @@ tasks:
   - action: unzip
     src: ./tmp/screenshot-basic.zip
     dest: ./resources/[cfx]/screenshot-basic
-
   ## rgo_core (Haupt-Framework)
   - action: download_file
     url: https://github.com/Real-Graz-Modding/rgo_core-/releases/latest/download/rgo_core.zip
-    path: ./tmp/ox_core.zip
+    path: ./tmp/rgo.zip
   - action: unzip
-    src: ./tmp/ox_core.zip
+    src: ./tmp/rgo.zip
     dest: ./resources/[rgo]
-
   - action: replace_string
-    file: ./resources/[rgo]/ox_core/sql/install.sql
+    file: ./resources/[rgo]/rgo/sql/install.sql
     search: "overextended"
     replace: "{{dbName}}"
-
   - action: replace_string
     mode: all_vars
     file:
-      - ./resources/[rgo]/ox_core/sql/install.sql
-
+      - ./resources/[rgo]/rgo/sql/install.sql
   - action: query_database
-    file: ./resources/[rgo]/ox_core/sql/install.sql
-
+    file: ./resources/[rgo]/rgo/sql/install.sql
   ## rgo_esx – ESX-Kompatibilitäts-Layer
   - action: download_github
     src: https://github.com/Real-Graz-Modding/rgo_core-
     ref: main
     subpath: rgo_esx
     dest: ./resources/[rgo]/rgo_esx
-
   ## rgo_qb – QBCore-Kompatibilitäts-Layer
   - action: download_github
     src: https://github.com/Real-Graz-Modding/rgo_core-
     ref: main
     subpath: rgo_qb
     dest: ./resources/[rgo]/rgo_qb
-
   ## oxmysql
   - action: download_file
     url: https://github.com/overextended/oxmysql/releases/latest/download/oxmysql.zip
@@ -82,7 +69,6 @@ tasks:
   - action: unzip
     src: ./tmp/oxmysql.zip
     dest: ./resources/[ox]
-
   ## ox_lib
   - action: download_file
     url: https://github.com/overextended/ox_lib/releases/latest/download/ox_lib.zip
@@ -90,7 +76,6 @@ tasks:
   - action: unzip
     src: ./tmp/ox_lib.zip
     dest: ./resources/[ox]
-
   ## ox_inventory
   - action: download_file
     url: https://github.com/overextended/ox_inventory/releases/latest/download/ox_inventory.zip
@@ -98,13 +83,11 @@ tasks:
   - action: unzip
     src: ./tmp/ox_inventory.zip
     dest: ./resources/[ox]
-
   ## pma-voice
   - action: download_github
     src: https://github.com/AvarianKnight/pma-voice
     ref: main
     dest: ./resources/pma-voice
-
   ## Aufräumen
   - action: remove_path
     path: ./tmp
