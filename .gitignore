@@ -1,7 +1,7 @@
 # ignore
 node_modules
 dist
-fxmanifest.lua
+/fxmanifest.lua
 .yarn.installed
 *.zip
 **.d.ts
