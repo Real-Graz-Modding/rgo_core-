@@ -40,6 +40,9 @@ tasks:
   - action: unzip
     src: ./tmp/rgo.zip
     dest: ./resources/[rgo]
+  - action: move_path
+    src: ./resources/[rgo]/ox_core
+    dest: ./resources/[rgo]/rgo
   - action: replace_string
     file: ./resources/[rgo]/rgo/sql/install.sql
     search: "overextended"
