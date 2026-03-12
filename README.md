@@ -27,6 +27,17 @@ can run without modification while the underlying core transitions away from
 See **[`rgo_esx/README.md`](rgo_esx/README.md)** for installation instructions,
 the full compatibility matrix, and the development roadmap.
 
+## rgo_qb – QBCore Compatibility Layer
+
+`rgo_qb` is an **optional companion resource** that ships with this repository.
+It provides a QBCore-compatible API surface (`GetCoreObject`, `Functions.*`,
+`PlayerData`, callbacks, lifecycle events) so that existing QB scripts can run
+without modification while the underlying core is `rgo_core` rather than
+`qb-core`.
+
+See **[`rgo_qb/README.md`](rgo_qb/README.md)** for installation instructions,
+the full compatibility matrix, and the development roadmap.
+
 ## Third-party resources
 
 When releasing a resource using the this framework _do not use the ox prefix_. This creates confusion about the creator of the resource, and causes conflicts between similarly named resources.
