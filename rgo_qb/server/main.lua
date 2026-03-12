@@ -2,28 +2,35 @@
     rgo_qb – Server: QBCore compatibility layer
     =============================================
     Provides:
-      • exports['rgo_qb']:GetCoreObject()              (server export)
+      • exports['QBCore']:GetCoreObject()              (server export)
       • TriggerEvent('QBCore:GetObject', cb)            (legacy event pattern)
-      • QBCore.Functions.GetPlayer / GetPlayers / GetPlayerByCitizenId
+      • QBCore.Functions.GetPlayer / GetPlayers / GetPlayerByCitizenId / GetPlayerByJob
       • QBCore.Functions.CreateCallback / TriggerCallback (server→client routing)
       • QBCore.Functions.Notify / HasPermission / AddPermission / RemovePermission
+      • QBCore.Functions.RegisterCommand / RegisterUsableItem / UseItem / IsPlayerLoaded
       • Player wrapper (PlayerData, money, job, inventory, kick, notify)
       • Lifecycle events:
           QBCore:Server:OnPlayerLoaded  (server)
           QBCore:Server:PlayerUnload    (server)
           QBCore:Server:SetJob          (server)
-
-    NOTE: This is an MVP.  See rgo_qb/README.md for the full compatibility
-    matrix and roadmap.
 --]]
 
 -- ─── Internals ────────────────────────────────────────────────────────────────
+
+-- Capture FiveM natives before any wrappers shadow them
+local _RegisterCommand = RegisterCommand
 
 ---@type table<number, table>   source → Player
 local Players = {}
 
 ---@type table<string, function> name → handler
 local ServerCallbacks = {}
+
+---@type table<source, table<string, boolean>>
+local Permissions = {}
+
+---@type table<string, function>
+local UsableItems = {}
 
 -- Monotonic counter used to make callback IDs unique within the same tick.
 local _cbCounter = 0
@@ -38,7 +45,6 @@ end
 ---@param source number
 ---@return table
 local function BuildPlayer(source)
-    -- Collect all identifiers
     local identifiers = {}
     for i = 0, GetNumPlayerIdentifiers(source) - 1 do
         local id = GetPlayerIdentifier(source, i)
@@ -50,44 +56,35 @@ local function BuildPlayer(source)
 
     local license = identifiers['license2'] or identifiers['license'] or ('license:unknown_' .. tostring(source))
 
-    -- Deterministic citizenid stub – TODO: replace with DB-driven generation so IDs
-    -- are stable across reconnects and source reuse is handled correctly.
+    -- Deterministic citizenid stub (stable within one session)
     local citizenid = ('STRT' .. string.format('%06d', source))
 
-    -- QB money types
-    local money = { cash = 0, bank = 0, crypto = 0 }
-
-    -- QB job structure
-    local job = {
-        name       = 'unemployed',
-        label      = 'Civilian',
-        grade      = { level = 0, name = 'Recruit', salary = 0 },
-        onduty     = false,
-        isboss     = false,
-    }
-
-    -- QB gang structure (stub)
-    local gang = {
-        name  = 'none',
-        label = 'No Gang',
-        grade = { level = 0, name = 'Member' },
+    local money    = { cash = 500, bank = 5000, crypto = 0 }
+    local job      = {
+        name   = 'unemployed',
+        label  = 'Civilian',
+        grade  = { level = 0, name = 'Recruit', salary = 0 },
+        onduty = false,
         isboss = false,
     }
-
-    -- QB metadata stub
+    local gang     = {
+        name   = 'none',
+        label  = 'No Gang',
+        grade  = { level = 0, name = 'Member' },
+        isboss = false,
+    }
     local metadata = {
-        hunger    = 100,
-        thirst    = 100,
-        stress    = 0,
-        isdead    = false,
-        inlaststand = false,
-        armor     = 0,
+        hunger       = 100,
+        thirst       = 100,
+        stress       = 0,
+        isdead       = false,
+        inlaststand  = false,
+        armor        = 0,
         ishandcuffed = false,
-        tracker   = false,
-        lastEdit  = os.date('%Y-%m-%d %H:%M:%S'),
+        tracker      = false,
+        lastEdit     = os.date('%Y-%m-%d %H:%M:%S'),
     }
 
-    -- PlayerData table (matches QB structure scripts read directly)
     local PlayerData = {
         source     = source,
         name       = GetPlayerName(source) or 'Unknown',
@@ -101,18 +98,16 @@ local function BuildPlayer(source)
         inventory  = {},
         items      = {},
         charinfo   = {
-            firstname  = 'Unknown',
-            lastname   = 'Player',
-            birthdate  = '01-01-2000',
-            gender     = 0,
+            firstname   = 'Unknown',
+            lastname    = 'Player',
+            birthdate   = '01-01-2000',
+            gender      = 0,
             nationality = 'Unknown',
-            phone      = '0000000',
-            account    = '000000000',
+            phone       = '0000000',
+            account     = '000000000',
         },
         permission = { primary = 'user', secondary = {} },
     }
-
-    -- ── Functions ──────────────────────────────────────────────────────────
 
     local Functions = {}
 
@@ -228,6 +223,11 @@ local function BuildPlayer(source)
         TriggerClientEvent('QBCore:Player:SetPlayerData', source, PlayerData)
     end
 
+    -- Charinfo helpers (e.g. phone)
+    function Functions.GetCharInfo(key)
+        return key and PlayerData.charinfo[key] or PlayerData.charinfo
+    end
+
     -- Notifications
     function Functions.Notify(text, type, length)
         TriggerClientEvent('QBCore:Notify', source, text, type or 'primary', length or 5000)
@@ -238,17 +238,19 @@ local function BuildPlayer(source)
         DropPlayer(source, reason or 'Kicked')
     end
 
-    -- Stub save (no-op until DB persistence is wired)
+    -- Stub save
     function Functions.Save()
         -- TODO: persist PlayerData to database via DB helpers
     end
 
-    -- ── Assemble the Player object ─────────────────────────────────────────
+    -- Trigger an event on this player's client
+    function Functions.TriggerEvent(eventName, ...)
+        TriggerClientEvent(eventName, source, ...)
+    end
 
     local Player = {
         PlayerData = PlayerData,
         Functions  = Functions,
-        -- Internal flag
         _loaded    = false,
     }
 
@@ -268,11 +270,9 @@ AddEventHandler('playerDropped', function(reason)
         TriggerEvent('QBCore:Server:PlayerUnload', source)
         Players[source] = nil
     end
-    -- Clean up any permissions for this source.
     Permissions[source] = nil
 end)
 
--- playerLoaded trigger – fires when a client signals it is ready.
 RegisterNetEvent('rgo_qb:playerReady', function()
     local source = source
     if not Players[source] then
@@ -289,18 +289,10 @@ end)
 
 -- ─── Server Callbacks ─────────────────────────────────────────────────────────
 
----Register a named server callback.
----@param name string     unique callback name
----@param cb   function   handler(source, resolve, reject, ...)
 local function CreateCallback(name, cb)
     ServerCallbacks[name] = cb
 end
 
----Trigger a server callback from the server side (routes to a specific client).
----@param name   string
----@param source number
----@param cb     function  server-side handler for the client response
----@param ...    any
 local function TriggerCallback(name, source, cb, ...)
     local cbId      = NextCbId(name .. '_' .. source)
     local eventName = 'rgo_qb:clientCallbackResult_' .. cbId
@@ -313,7 +305,6 @@ local function TriggerCallback(name, source, cb, ...)
         listener = nil
     end)
 
-    -- Timeout: clean up after 30 s if the client never responds.
     SetTimeout(30000, function()
         if listener then
             RemoveEventHandler(listener)
@@ -322,14 +313,13 @@ local function TriggerCallback(name, source, cb, ...)
     end)
 end
 
--- Handle callbacks triggered from clients.
 RegisterNetEvent('rgo_qb:triggerServerCallback', function(name, cbId, ...)
     local source = source
     local args   = { ... }
 
     local handler = ServerCallbacks[name]
     if not handler then
-        print(('[rgo_qb] WARNING: No server callback registered for "%s"'):format(name))
+        print(('[QBCore] WARNING: No server callback registered for "%s"'):format(name))
         TriggerClientEvent('rgo_qb:serverCallbackResult', source, cbId)
         return
     end
@@ -340,7 +330,7 @@ RegisterNetEvent('rgo_qb:triggerServerCallback', function(name, cbId, ...)
 
     local function reject(err)
         TriggerClientEvent('rgo_qb:serverCallbackResult', source, cbId)
-        print(('[rgo_qb] Callback "%s" rejected: %s'):format(name, tostring(err)))
+        print(('[QBCore] Callback "%s" rejected: %s'):format(name, tostring(err)))
     end
 
     handler(source, resolve, reject, table.unpack(args))
@@ -351,9 +341,7 @@ RegisterNetEvent('rgo_qb:clientCallbackResult', function(cbId, ...)
     TriggerEvent('rgo_qb:clientCallbackResult_' .. cbId, table.unpack(args))
 end)
 
--- ─── Permission stubs ─────────────────────────────────────────────────────────
-
-local Permissions = {}   -- source → set of permission strings
+-- ─── Permission helpers ────────────────────────────────────────────────────────
 
 local function HasPermission(source, permission)
     if not Permissions[source] then return false end
@@ -369,11 +357,21 @@ local function RemovePermission(source, permission)
     if Permissions[source] then Permissions[source][permission] = nil end
 end
 
+-- ─── Usable items – trigger from client ───────────────────────────────────────
+
+RegisterNetEvent('rgo_qb:useItem', function(name)
+    local source  = source
+    local handler = UsableItems[name]
+    if handler then
+        local Player = Players[source]
+        if Player then handler(source, Player) end
+    end
+end)
 
 -- ─── QBCore Shared Object ─────────────────────────────────────────────────────
 
 local QBCore = {
-    Version = '1.0.0-rgo_qb',
+    Version = '1.3.0-rgo_qb',
     Config  = {
         Locale     = 'en',
         Money      = { MoneyTypes = { cash = 500, bank = 5000, crypto = 0 } },
@@ -381,11 +379,13 @@ local QBCore = {
         MaxPlayers = 64,
     },
     Shared = {
-        Jobs   = {},
-        Gangs  = {},
-        Items  = {},
+        Jobs     = {},
+        Gangs    = {},
+        Items    = {},
         Vehicles = {},
     },
+    Commands   = {},
+    UsableItems = UsableItems,
 
     Functions = {
         -- Player accessors
@@ -399,6 +399,10 @@ local QBCore = {
                 result[#result + 1] = src
             end
             return result
+        end,
+
+        GetAllPlayers = function()
+            return Players
         end,
 
         GetPlayerByCitizenId = function(citizenid)
@@ -415,6 +419,20 @@ local QBCore = {
             end
         end,
 
+        GetPlayerByJob = function(jobName)
+            local result = {}
+            for _, Player in pairs(Players) do
+                if Player.PlayerData.job and Player.PlayerData.job.name == jobName then
+                    result[#result + 1] = Player
+                end
+            end
+            return result
+        end,
+
+        IsPlayerLoaded = function(source)
+            return Players[source] ~= nil and Players[source]._loaded == true
+        end,
+
         -- Callbacks
         CreateCallback  = CreateCallback,
         TriggerCallback = TriggerCallback,
@@ -426,6 +444,32 @@ local QBCore = {
 
         IsOptin = function(source)
             return false
+        end,
+
+        -- Command registration (wraps FiveM native RegisterCommand)
+        RegisterCommand = function(name, group, cb, arguments, description, allowConsole)
+            if type(group) == 'function' then
+                cb, arguments, description, allowConsole = group, cb, arguments, description
+                group = 'user'
+            end
+            _RegisterCommand(name, function(source, args, rawCommand)
+                local Player = Players[source]
+                if source ~= 0 and not Player then return end
+                cb(source, args, rawCommand)
+            end, allowConsole == true)
+        end,
+
+        -- Usable items
+        RegisterUsableItem = function(name, cb)
+            UsableItems[name] = cb
+        end,
+
+        UseItem = function(source, name)
+            local handler = UsableItems[name]
+            if handler then
+                local Player = Players[source]
+                if Player then handler(source, Player) end
+            end
         end,
 
         -- Notifications
@@ -450,14 +494,12 @@ local QBCore = {
 
 -- ─── Public exports ───────────────────────────────────────────────────────────
 
----Export: exports['rgo_qb']:GetCoreObject()
 exports('GetCoreObject', function()
     return QBCore
 end)
 
----Legacy event: TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
 AddEventHandler('QBCore:GetObject', function(cb)
     if type(cb) == 'function' then cb(QBCore) end
 end)
 
-print('[rgo_qb] QBCore compatibility layer started (MVP v1.0.0)')
+print('[QBCore] QBCore compatibility layer started (v1.3.0)')

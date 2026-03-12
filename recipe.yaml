@@ -33,12 +33,10 @@ tasks:
   - action: unzip
     src: ./tmp/screenshot-basic.zip
     dest: ./resources/[cfx]/screenshot-basic
-  ## rgo_core (Haupt-Framework)
-  - action: download_file
-    url: https://github.com/Real-Graz-Modding/rgo_core-/releases/latest/download/rgo_core.zip
-    path: ./tmp/rgo.zip
-  - action: unzip
-    src: ./tmp/rgo.zip
+  ## rgo_core (Haupt-Framework) – direkt vom Repository (enthält fxmanifest.lua + dist/)
+  - action: download_github
+    src: https://github.com/Real-Graz-Modding/rgo_core-
+    ref: main
     dest: ./resources/[rgo]/ox_core
   - action: replace_string
     file: ./resources/[rgo]/ox_core/sql/install.sql
@@ -56,12 +54,12 @@ tasks:
     ref: main
     subpath: rgo_esx
     dest: ./resources/[rgo]/es_extended
-  ## rgo_qb – QBCore-Kompatibilitäts-Layer
+  ## rgo_qb – QBCore-Kompatibilitäts-Layer (als QBCore installiert)
   - action: download_github
     src: https://github.com/Real-Graz-Modding/rgo_core-
     ref: main
     subpath: rgo_qb
-    dest: ./resources/[rgo]/rgo_qb
+    dest: ./resources/[rgo]/QBCore
   ## oxmysql
   - action: download_file
     url: https://github.com/overextended/oxmysql/releases/latest/download/oxmysql.zip
@@ -83,6 +81,9 @@ tasks:
   - action: unzip
     src: ./tmp/ox_inventory.zip
     dest: ./resources/[ox]
+  ## ox_inventory – SQL-Schema einrichten (owned_vehicles, licenses, etc.)
+  - action: query_database
+    file: ./resources/[ox]/ox_inventory/ox_inventory.sql
   ## pma-voice
   - action: download_github
     src: https://github.com/AvarianKnight/pma-voice

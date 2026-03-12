@@ -8,7 +8,6 @@ version '1.9.4'
 
 dependencies {
   '/server:12913',
-  'ox_core',
   'oxmysql',
 }
 

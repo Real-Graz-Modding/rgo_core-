@@ -2,24 +2,36 @@
     rgo_esx – Server: ESX compatibility layer
     ==========================================
     Provides:
-      • exports['rgo_esx']:getSharedObject()         (server export)
-      • TriggerEvent('esx:getSharedObject', cb)       (legacy event pattern)
+      • exports['es_extended']:getSharedObject()      (server export)
+      • TriggerEvent('esx:getSharedObject', cb)        (legacy event pattern)
       • ESX.RegisterServerCallback / TriggerClientCallback
-      • ESX.GetPlayerFromId / GetPlayers / GetPlayerFromIdentifier
-      • xPlayer wrapper with minimal ESX 9.x API surface
+      • ESX.GetPlayerFromId / GetPlayers / GetPlayerFromIdentifier / GetExtendedPlayers
+      • ESX.RegisterCommand / RegisterUsableItem / UseItem
+      • xPlayer wrapper with full ESX 9.x API surface
       • Lifecycle events: esx:playerLoaded, esx:playerDropped, esx:setJob
-
-    NOTE: This is an MVP.  See rgo_esx/README.md for the full compatibility
-    matrix and roadmap.
 --]]
 
 -- ─── Internals ────────────────────────────────────────────────────────────────
+
+-- Capture FiveM natives before any wrappers shadow them
+local _RegisterCommand = RegisterCommand
 
 ---@type table<number, table>   source → xPlayer
 local Players = {}
 
 ---@type table<string, function> name → handler
 local ServerCallbacks = {}
+
+---@type table<string, function> item name → usable handler
+local UsableItems = {}
+
+-- ESX config stub (mirrors es_extended Config table)
+local ESXConfig = {
+    StartingAccountMoney = { bank = 5000 },
+    Locale = 'en',
+    EnableDebug = false,
+    Multichar = false,
+}
 
 -- Monotonic counter used to make callback IDs unique within the same tick.
 local _cbCounter = 0
@@ -49,7 +61,7 @@ local function BuildXPlayer(source)
     -- Stub account/inventory/job structures (ESX 9.x defaults)
     local accounts = {
         { name = 'money',       label = 'Cash',         money = 0 },
-        { name = 'bank',        label = 'Bank',         money = 0 },
+        { name = 'bank',        label = 'Bank',         money = 5000 },
         { name = 'black_money', label = 'Black Money',  money = 0 },
     }
 
@@ -64,8 +76,9 @@ local function BuildXPlayer(source)
         inventory   = inventory,
         job         = job,
         loadout     = {},
-        -- internal flag
         _loaded     = false,
+        _group      = 'user',
+        _metadata   = {},
     }
 
     -- ── Account helpers ────────────────────────────────────────────────────
@@ -97,6 +110,18 @@ local function BuildXPlayer(source)
     function xPlayer.removeMoney(n)  xPlayer.removeAccountMoney('money', n) end
     function xPlayer.setMoney(n)     xPlayer.setAccountMoney('money', n) end
 
+    -- Convenience wrappers for the 'bank' account
+    function xPlayer.getBankMoney()      return xPlayer.getAccount('bank') and xPlayer.getAccount('bank').money or 0 end
+    function xPlayer.addBankMoney(n)     xPlayer.addAccountMoney('bank', n) end
+    function xPlayer.removeBankMoney(n)  xPlayer.removeAccountMoney('bank', n) end
+    function xPlayer.setBankMoney(n)     xPlayer.setAccountMoney('bank', n) end
+
+    -- ── Identifier helper ──────────────────────────────────────────────────
+
+    function xPlayer.getIdentifier()
+        return xPlayer.identifier
+    end
+
     -- ── Inventory helpers ──────────────────────────────────────────────────
 
     function xPlayer.getInventoryItem(name)
@@ -107,12 +132,13 @@ local function BuildXPlayer(source)
     end
 
     function xPlayer.addInventoryItem(name, count)
+        local safeCount = math.max(0, count)
+        if safeCount == 0 then return end
         local item = xPlayer.getInventoryItem(name)
         if item.count == 0 and item.weight == 0 then
-            -- item not yet in player inventory – add stub entry
-            table.insert(xPlayer.inventory, { name = name, count = count, label = name, weight = 0 })
+            table.insert(xPlayer.inventory, { name = name, count = safeCount, label = name, weight = 0 })
         else
-            item.count = item.count + math.max(0, count)
+            item.count = item.count + safeCount
         end
     end
 
@@ -128,8 +154,11 @@ local function BuildXPlayer(source)
     end
 
     function xPlayer.canCarryItem(name, count)
-        -- Stub: always allow.  Replace with weight/slot logic as needed.
         return true
+    end
+
+    function xPlayer.getLoadout()
+        return xPlayer.loadout
     end
 
     -- ── Job helpers ────────────────────────────────────────────────────────
@@ -150,17 +179,42 @@ local function BuildXPlayer(source)
         TriggerEvent('esx:setJob', source, xPlayer.job)
     end
 
-    -- ── Group / permission stub ────────────────────────────────────────────
+    function xPlayer.hasJob(name, grade)
+        if grade then
+            return xPlayer.job.name == name and xPlayer.job.grade >= grade
+        end
+        return xPlayer.job.name == name
+    end
+
+    function xPlayer.isInJob(name)
+        return xPlayer.job.name == name
+    end
+
+    -- ── Group / permission helpers ─────────────────────────────────────────
 
     function xPlayer.getGroup()
-        return 'user'
+        return xPlayer._group
+    end
+
+    function xPlayer.setGroup(group)
+        xPlayer._group = group
     end
 
     function xPlayer.getPermissions()
         return {}
     end
 
-    -- ── Notification helper ───────────────────────────────────────────────
+    -- ── Metadata helpers ──────────────────────────────────────────────────
+
+    function xPlayer.get(key)
+        return xPlayer._metadata[key]
+    end
+
+    function xPlayer.set(key, value)
+        xPlayer._metadata[key] = value
+    end
+
+    -- ── Notification / kick helpers ───────────────────────────────────────
 
     function xPlayer.showNotification(msg, type)
         TriggerClientEvent('esx:showNotification', source, msg, type or 'inform')
@@ -168,6 +222,17 @@ local function BuildXPlayer(source)
 
     function xPlayer.kick(reason)
         DropPlayer(source, reason or 'Kicked')
+    end
+
+    -- ── Coords helpers (stubs) ────────────────────────────────────────────
+
+    function xPlayer.getCoords(vector)
+        local ped = GetPlayerPed(source)
+        if ped and ped ~= 0 then
+            local c = GetEntityCoords(ped)
+            return { x = c.x, y = c.y, z = c.z }
+        end
+        return { x = 0.0, y = 0.0, z = 0.0 }
     end
 
     return xPlayer
@@ -189,7 +254,6 @@ AddEventHandler('playerDropped', function(reason)
 end)
 
 -- playerLoaded trigger – fires when a client signals it is ready.
--- Other resources can listen to 'esx:playerLoaded'.
 RegisterNetEvent('rgo_esx:playerReady', function()
     local source = source
     if not Players[source] then
@@ -225,7 +289,7 @@ RegisterNetEvent('rgo_esx:triggerServerCallback', function(name, cbId, ...)
 
     local handler = ServerCallbacks[name]
     if not handler then
-        print(('[rgo_esx] WARNING: No server callback registered for "%s"'):format(name))
+        print(('[es_extended] WARNING: No server callback registered for "%s"'):format(name))
         TriggerClientEvent('rgo_esx:serverCallbackResult', source, cbId, false)
         return
     end
@@ -242,16 +306,11 @@ RegisterNetEvent('rgo_esx:triggerServerCallback', function(name, cbId, ...)
 end)
 
 ---Route a server-initiated callback to a specific client.
----@param name   string
----@param source number
----@param cb     function   server-side handler called with client response
----@param ...    any        extra args forwarded to the client
 local function TriggerClientCallback(name, source, cb, ...)
-    local cbId    = NextCbId(name .. '_' .. source)
+    local cbId      = NextCbId(name .. '_' .. source)
     local eventName = 'rgo_esx:clientCallbackResult_' .. cbId
     TriggerClientEvent('rgo_esx:triggerClientCallback', source, name, cbId, ...)
 
-    -- One-shot listener for the response
     local listener
     listener = AddEventHandler(eventName, function(...)
         cb(...)
@@ -259,7 +318,6 @@ local function TriggerClientCallback(name, source, cb, ...)
         listener = nil
     end)
 
-    -- Timeout: clean up the listener after 30 seconds if the client never responds.
     SetTimeout(30000, function()
         if listener then
             RemoveEventHandler(listener)
@@ -271,6 +329,17 @@ end
 RegisterNetEvent('rgo_esx:clientCallbackResult', function(cbId, ...)
     local args = { ... }
     TriggerEvent('rgo_esx:clientCallbackResult_' .. cbId, table.unpack(args))
+end)
+
+-- ─── Usable items – handle trigger from client ────────────────────────────────
+
+RegisterNetEvent('rgo_esx:useItem', function(name)
+    local source  = source
+    local handler = UsableItems[name]
+    if handler then
+        local xPlayer = Players[source]
+        if xPlayer then handler(source, xPlayer) end
+    end
 end)
 
 -- ─── ESX Shared Object ────────────────────────────────────────────────────────
@@ -298,26 +367,81 @@ local ESX = {
         return result
     end,
 
+    GetExtendedPlayers = function(key, val)
+        local result = {}
+        for _, xPlayer in pairs(Players) do
+            if not key or xPlayer[key] == val then
+                result[#result + 1] = xPlayer
+            end
+        end
+        return result
+    end,
+
+    IsPlayerLoaded = function(source)
+        return Players[source] ~= nil and Players[source]._loaded == true
+    end,
+
     -- Callback API
-    RegisterServerCallback  = RegisterServerCallback,
-    TriggerClientCallback   = TriggerClientCallback,
+    RegisterServerCallback = RegisterServerCallback,
+    TriggerClientCallback  = TriggerClientCallback,
+
+    -- Command registration (wraps FiveM native RegisterCommand)
+    RegisterCommand = function(name, group, cb, arguments, description, allowConsole)
+        if type(group) == 'function' then
+            -- Called as RegisterCommand(name, cb, arguments, description) – no group
+            cb, arguments, description, allowConsole = group, cb, arguments, description
+            group = 'user'
+        end
+        _RegisterCommand(name, function(source, args, rawCommand)
+            local xPlayer = Players[source]
+            if source ~= 0 and not xPlayer then return end
+            cb(source, args, rawCommand)
+        end, allowConsole == true)
+    end,
+
+    -- Usable items
+    RegisterUsableItem = function(name, cb)
+        UsableItems[name] = cb
+    end,
+
+    UseItem = function(source, name)
+        local handler = UsableItems[name]
+        if handler then
+            local xPlayer = Players[source]
+            if xPlayer then handler(source, xPlayer) end
+        end
+    end,
+
+    -- Direct inventory shortcuts (operate on a player by source)
+    AddInventoryItem = function(source, name, count)
+        local xPlayer = Players[source]
+        if xPlayer then xPlayer.addInventoryItem(name, count) end
+    end,
+
+    RemoveInventoryItem = function(source, name, count)
+        local xPlayer = Players[source]
+        if xPlayer then xPlayer.removeInventoryItem(name, count) end
+    end,
+
+    -- Config
+    GetConfig = function()
+        return ESXConfig
+    end,
 
     -- Utility
     Trace = function(msg)
-        print('[rgo_esx] ' .. tostring(msg))
+        print('[es_extended] ' .. tostring(msg))
     end,
 }
 
 -- ─── Public exports ───────────────────────────────────────────────────────────
 
----Export: exports['rgo_esx']:getSharedObject()
 exports('getSharedObject', function()
     return ESX
 end)
 
----Legacy event: TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 AddEventHandler('esx:getSharedObject', function(cb)
     if type(cb) == 'function' then cb(ESX) end
 end)
 
-print('[rgo_esx] ESX compatibility layer started (MVP v1.0.0)')
+print('[es_extended] ESX compatibility layer started (v1.9.4)')

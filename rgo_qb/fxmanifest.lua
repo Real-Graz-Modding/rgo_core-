@@ -1,14 +1,13 @@
 fx_version 'cerulean'
 game 'gta5'
 
-name 'rgo_qb'
+name 'QBCore'
 author 'Real-Graz-Modding'
-description 'QBCore compatibility layer for rgo_core'
-version '1.0.0'
+description 'QBCore compatibility layer for rgo_core (QBCore shim)'
+version '1.3.0'
 
 dependencies {
   '/server:12913',
-  'ox_core',
   'oxmysql',
 }
 
