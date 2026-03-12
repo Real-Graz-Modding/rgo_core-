@@ -7,21 +7,42 @@ Ein modernes FiveM-Framework von Real-Graz-Modding, basierend auf ox_core.
 
 ---
 
+## 🧾 txAdmin-Rezept (Schnellinstallation)
+
+Der einfachste Weg, rgo_core zu installieren, ist über das **txAdmin-Rezept**.  
+txAdmin richtet automatisch alle Abhängigkeiten ein, importiert die Datenbank und erstellt die `server.cfg`.
+
+**Rezept-URL für txAdmin:**
+```
+https://raw.githubusercontent.com/Real-Graz-Modding/rgo_core-/main/recipe.yaml
+```
+
+**Was wird installiert:**
+- rgo_core (Haupt-Framework)
+- oxmysql, ox_lib, ox_inventory
+- rgo_esx & rgo_qb (Kompatibilitäts-Layer, standardmäßig auskommentiert)
+- pma-voice
+- Standard-CFX-Ressourcen (mapmanager, chat, etc.)
+- screenshot-basic
+
+---
+
 ## 📋 Inhaltsverzeichnis
 
 1. [Voraussetzungen](#-voraussetzungen)
 2. [Installation](#-installation)
+   - [txAdmin-Rezept (empfohlen)](#txadmin-rezept-empfohlen)
    - [1. Datenbank einrichten](#1-datenbank-einrichten)
    - [2. Dateien herunterladen und kopieren](#2-dateien-herunterladen-und-kopieren)
    - [3. server.cfg konfigurieren](#3-servercfg-konfigurieren)
    - [4. Framework bauen (Build)](#4-framework-bauen-build)
-4. [Konfiguration (Convars)](#-konfiguration-convars)
-5. [Optionale Brücken (Bridges)](#-optionale-brücken-bridges)
-6. [Kompatibilitäts-Layer](#-kompatibilitäts-layer)
+3. [Konfiguration (Convars)](#-konfiguration-convars)
+4. [Optionale Brücken (Bridges)](#-optionale-brücken-bridges)
+5. [Kompatibilitäts-Layer](#-kompatibilitäts-layer)
    - [rgo_esx – ESX-Skripte verwenden](#rgo_esx--esx-skripte-verwenden)
    - [rgo_qb – QBCore-Skripte verwenden](#rgo_qb--qbcore-skripte-verwenden)
-7. [Third-Party-Ressourcen](#-third-party-ressourcen)
-8. [Lizenz](#-lizenz)
+6. [Third-Party-Ressourcen](#-third-party-ressourcen)
+7. [Lizenz](#-lizenz)
 
 ---
 
@@ -42,6 +63,23 @@ Stelle sicher, dass folgende Komponenten vorhanden sind, **bevor** du mit der In
 ---
 
 ## 🚀 Installation
+
+### txAdmin-Rezept (empfohlen)
+
+> **Nur wenige Klicks nötig!** txAdmin erledigt alles automatisch.
+
+1. Öffne txAdmin und wähle **"Setup Server"** → **"Custom Template"**.
+2. Gib folgende URL ein:
+   ```
+   https://raw.githubusercontent.com/Real-Graz-Modding/rgo_core-/main/recipe.yaml
+   ```
+3. Folge dem Assistenten (Datenbankverbindung, Servername, etc.).
+4. txAdmin installiert automatisch: rgo_core, oxmysql, ox_lib, ox_inventory, pma-voice und erstellt die `server.cfg`.
+
+> ⚠️ **Hinweis:** Für das txAdmin-Rezept ist **kein manueller Build-Schritt** nötig –  
+> das Rezept lädt die fertig gebaute Release-Version herunter.
+
+---
 
 ### 1. Datenbank einrichten
 
