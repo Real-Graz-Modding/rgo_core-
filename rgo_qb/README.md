@@ -1,109 +1,122 @@
-# rgo_qb – QBCore Compatibility Layer for rgo_core
+# rgo_qb – QBCore-Kompatibilitäts-Layer für rgo_core
 
-`rgo_qb` is a **standalone FiveM resource** that provides a QBCore-compatible
-API surface on top of `rgo_core`.  It allows existing QB scripts to run with
-**little or no modification** while the underlying framework is `rgo_core`
-rather than `qb-core`.
+`rgo_qb` ist eine **eigenständige FiveM-Ressource**, die eine QBCore-kompatible  
+API-Oberfläche auf Basis von `rgo_core` bereitstellt.  
+Damit können bestehende QBCore-Skripte **ohne oder mit minimalen Änderungen** weiterhin  
+verwendet werden – ohne dass `qb-core` installiert sein muss.
 
 ---
 
-## Requirements
+## ✅ Voraussetzungen
 
-| Dependency | Minimum version |
+| Abhängigkeit | Mindestversion |
 |---|---|
-| [oxmysql](https://github.com/overextended/oxmysql) | latest |
-| FiveM server artifact | 12913+ |
+| [rgo_core](https://github.com/Real-Graz-Modding/rgo_core-) | – |
+| [oxmysql](https://github.com/overextended/oxmysql/releases/latest) | latest |
+| FiveM Server Artifact | 12913+ |
 
-> **Note:** `qb-core` is **not** required when using `rgo_qb`.
+> **Hinweis:** `qb-core` wird **nicht** benötigt.
 
 ---
 
-## Installation
+## 🚀 Installation
 
-1. Copy (or clone) the `rgo_qb` folder into your server's `resources` directory.
-2. Add the following lines to your `server.cfg` **before** any resource that
-   depends on QBCore:
+1. Stelle sicher, dass `rgo_core` bereits installiert und konfiguriert ist  
+   → Anleitung: [README.md](../README.md)
+
+2. Kopiere den Ordner `rgo_qb` in dein `resources`-Verzeichnis auf dem Server  
+   (er ist bereits Teil des `rgo_core`-Repositories).
+
+3. Füge folgende Zeilen in deine `server.cfg` ein – **in dieser Reihenfolge**:
 
    ```cfg
    ensure oxmysql
+   ensure ox_lib
+   ensure rgo_core
    ensure rgo_qb
    ```
 
-3. Existing resources that call `exports['qb-core']:GetCoreObject()` need a
-   one-line change:
-
-   ```lua
-   -- Before
-   QBCore = exports['qb-core']:GetCoreObject()
-
-   -- After
-   QBCore = exports['rgo_qb']:GetCoreObject()
-   ```
-
-   Resources that use the legacy event pattern work **unchanged**:
-
-   ```lua
-   TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
-   ```
+4. Starte deinen Server neu.
 
 ---
 
-## Usage
+## 🔄 Migration bestehender QB-Skripte
 
-### Server-side
+Skripte, die `exports['qb-core']:GetCoreObject()` aufrufen, benötigen  
+**eine einzige Code-Änderung**:
+
+```lua
+-- Vorher
+QBCore = exports['qb-core']:GetCoreObject()
+
+-- Nachher
+QBCore = exports['rgo_qb']:GetCoreObject()
+```
+
+Skripte, die das **Legacy-Event** verwenden, funktionieren **unverändert**:
+
+```lua
+TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
+```
+
+---
+
+## 📖 Verwendung
+
+### Server-seitig
 
 ```lua
 local QBCore = exports['rgo_qb']:GetCoreObject()
 
--- Get a player object
+-- Spieler abrufen
 local Player = QBCore.Functions.GetPlayer(source)
 if Player then
-    print(Player.PlayerData.citizenid)      -- STRT000001
-    print(Player.PlayerData.license)        -- license2:...
-    print(Player.Functions.GetMoney('cash'))
+    print(Player.PlayerData.citizenid)        -- STRT000001
+    print(Player.PlayerData.license)          -- license2:...
+    print(Player.Functions.GetMoney('cash'))  -- Bargeld
 
     Player.Functions.AddMoney('bank', 1000)
     Player.Functions.SetJob('police', 2)
-    Player.Functions.Notify('Welcome!', 'success', 3000)
+    Player.Functions.Notify('Willkommen!', 'success', 3000)
 end
 
--- List all connected player sources
+-- Alle verbundenen Spieler-Sources abrufen
 local sources = QBCore.Functions.GetPlayers()   -- { 1, 3, 7, ... }
 
--- Register a server callback
-QBCore.Functions.CreateCallback('myResource:getData', function(source, resolve, reject, arg)
-    resolve({ value = arg .. '_ok' })
+-- Server-Callback registrieren
+QBCore.Functions.CreateCallback('meineRessource:getDaten', function(source, resolve, reject, arg)
+    resolve({ wert = arg .. '_ok' })
 end)
 
--- Trigger a callback to a specific client from the server
-QBCore.Functions.TriggerCallback('myResource:clientPing', source, function(result)
+-- Callback zum Client senden (Server→Client)
+QBCore.Functions.TriggerCallback('meineRessource:clientPing', source, function(result)
     print(result.pong)
-end, 'hello')
+end, 'hallo')
 ```
 
-### Client-side
+### Client-seitig
 
 ```lua
 local QBCore = exports['rgo_qb']:GetCoreObject()
 
--- Trigger a server callback
-QBCore.Functions.TriggerCallback('myResource:getData', function(result)
-    print(result.value)
-end, 'hello')
+-- Server-Callback auslösen
+QBCore.Functions.TriggerCallback('meineRessource:getDaten', function(result)
+    print(result.wert)
+end, 'hallo')
 
--- Register a client callback (called by TriggerCallback on the server)
-QBCore.Functions.RegisterCallback('myResource:clientPing', function(resolve, payload)
+-- Client-Callback registrieren (wird vom Server via TriggerCallback aufgerufen)
+QBCore.Functions.RegisterCallback('meineRessource:clientPing', function(resolve, payload)
     resolve({ pong = true, echo = payload })
 end)
 
--- Read current player data
+-- Aktuelle Spielerdaten lesen
 local pd = QBCore.PlayerData
 print(pd.citizenid, pd.job.name, pd.money.cash)
 ```
 
 ---
 
-## What is already compatible (MVP)
+## ✅ Bereits kompatibel (MVP)
 
 | Feature | Status |
 |---|---|
@@ -114,76 +127,73 @@ print(pd.citizenid, pd.job.name, pd.money.cash)
 | `QBCore.Functions.GetPlayerByCitizenId(cid)` | ✅ |
 | `QBCore.Functions.GetPlayerByPhone(phone)` | ✅ |
 | `QBCore.Functions.CreateCallback` | ✅ |
-| `QBCore.Functions.TriggerCallback` (server→client) | ✅ |
-| `QBCore.Functions.TriggerCallback` (client→server) | ✅ |
-| `QBCore.Functions.RegisterCallback` (client) | ✅ |
+| `QBCore.Functions.TriggerCallback` (Server→Client) | ✅ |
+| `QBCore.Functions.TriggerCallback` (Client→Server) | ✅ |
+| `QBCore.Functions.RegisterCallback` (Client) | ✅ |
 | `QBCore.Functions.Notify(source, text, type, length)` | ✅ |
-| `QBCore.Functions.HasPermission / AddPermission / RemovePermission` | ✅ stub |
+| `QBCore.Functions.HasPermission / AddPermission / RemovePermission` | ✅ Stub |
 | `QBCore.Functions.GetIdentifier` | ✅ |
 | `Player.PlayerData` (citizenid, license, name, money, job, gang, metadata, charinfo) | ✅ |
 | `Player.Functions.GetMoney / AddMoney / RemoveMoney / SetMoney` | ✅ |
 | `Player.Functions.GetJob / SetJob` | ✅ |
 | `Player.Functions.GetGang / SetGang` | ✅ |
-| `Player.Functions.AddItem / RemoveItem / HasItem / GetItemByName` | ✅ (in-memory) |
+| `Player.Functions.AddItem / RemoveItem / HasItem / GetItemByName` | ✅ (In-Memory) |
 | `Player.Functions.GetMetaData / SetMetaData` | ✅ |
 | `Player.Functions.Notify / Kick / Save` | ✅ |
-| `QBCore:Server:OnPlayerLoaded` event | ✅ |
-| `QBCore:Server:PlayerUnload` event | ✅ |
-| `QBCore:Server:SetJob` event | ✅ |
-| `QBCore:Client:OnPlayerLoaded` event | ✅ |
-| `QBCore:Client:PlayerUnload` event | ✅ |
-| `QBCore:Client:SetJob` event | ✅ |
-| `QBCore:Player:SetPlayerData` event | ✅ |
-| `QBCore:Notify` event | ✅ |
-| `QBCore.Config` stub | ✅ |
-| `QBCore.Shared` stub (Jobs/Gangs/Items/Vehicles) | ✅ |
-| oxmysql adapter (`DB.query/single/execute/scalar`) | ✅ skeleton |
+| Event `QBCore:Server:OnPlayerLoaded` | ✅ |
+| Event `QBCore:Server:PlayerUnload` | ✅ |
+| Event `QBCore:Server:SetJob` | ✅ |
+| Event `QBCore:Client:OnPlayerLoaded` | ✅ |
+| Event `QBCore:Client:PlayerUnload` | ✅ |
+| Event `QBCore:Client:SetJob` | ✅ |
+| Event `QBCore:Player:SetPlayerData` | ✅ |
+| Event `QBCore:Notify` | ✅ |
+| `QBCore.Config` (Stub) | ✅ |
+| `QBCore.Shared` (Jobs/Gangs/Items/Vehicles – Stub) | ✅ |
+| oxmysql-Adapter (`DB.query / single / execute / scalar`) | ✅ Grundgerüst |
 
 ---
 
-## What is still missing (roadmap)
+## 🗺️ Roadmap (noch fehlend)
 
-| Feature | Priority |
+| Feature | Priorität |
 |---|---|
-| Full DB persistence (load/save PlayerData from SQL) | High |
-| Jobs/Gangs/Items from database into `QBCore.Shared` | High |
-| `citizenid` generated/loaded from DB | High |
-| `Player.Functions.Save()` persists to DB | High |
-| `charinfo` loaded from DB | High |
-| `QBCore.Functions.CreateUseableItem` | Medium |
-| `QBCore.Functions.UseItem` | Medium |
-| `QBCore.Functions.AddItem` (global, not player) | Medium |
-| `QBCore.Functions.CanAddItem` | Medium |
-| `QBCore.Commands` system | Medium |
-| `Player.Functions.GetVehicles` | Low |
-| ox_inventory bridge for inventory operations | Low |
-| `QBCore.Config.Whitelist` / ACE-based permissions | Low |
+| Vollständige DB-Persistenz (PlayerData laden/speichern) | Hoch |
+| Jobs/Gangs/Items aus der Datenbank in `QBCore.Shared` | Hoch |
+| `citizenid` aus der Datenbank laden / generieren | Hoch |
+| `Player.Functions.Save()` speichert in die DB | Hoch |
+| `charinfo` aus der Datenbank laden | Hoch |
+| `QBCore.Functions.CreateUseableItem` | Mittel |
+| `QBCore.Functions.UseItem` | Mittel |
+| `QBCore.Functions.AddItem` (global, nicht spielerbezogen) | Mittel |
+| `QBCore.Functions.CanAddItem` | Mittel |
+| `QBCore.Commands`-System | Mittel |
+| `Player.Functions.GetVehicles` | Niedrig |
+| ox_inventory-Brücke für Inventar-Operationen | Niedrig |
+| `QBCore.Config.Whitelist` / ACE-basierte Berechtigungen | Niedrig |
 
-Contributions welcome – see [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+Mitarbeit willkommen – siehe [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ---
 
-## Architecture
+## 🏗️ Architektur
 
 ```
 rgo_qb/
-├── fxmanifest.lua          FiveM resource manifest
+├── fxmanifest.lua          FiveM-Ressourcen-Manifest
 ├── server/
-│   ├── db.lua              oxmysql adapter (thin wrappers)
-│   └── main.lua            QBCore shared object, callbacks, player lifecycle
+│   ├── db.lua              oxmysql-Adapter (dünne Wrapper)
+│   └── main.lua            QBCore Shared Object, Callbacks, Spieler-Lifecycle
 └── client/
-    └── main.lua            Client-side QBCore object, callback routing
+    └── main.lua            Client-seitiges QBCore-Objekt, Callback-Routing
 ```
 
-The resource is **self-contained Lua** – no TypeScript/build step required.
+Die Ressource ist **reines Lua** – kein TypeScript- oder Build-Schritt erforderlich.
 
 ---
 
-## Security notes
+## 🔒 Sicherheitshinweise
 
-- All `RegisterNetEvent` handlers validate `source` implicitly through FiveM's
-  net-event routing.
-- Money and inventory mutations are server-side only; clients cannot directly
-  mutate values.
-- In production, add explicit permission checks inside `CreateCallback` handlers
-  for sensitive operations.
+- Alle `RegisterNetEvent`-Handler validieren `source` implizit durch FiveM's Net-Event-Routing.
+- Geld- und Inventar-Operationen laufen **ausschließlich serverseitig** – Clients können Werte nicht direkt manipulieren.
+- Füge in Produktionsumgebungen explizite Berechtigungsprüfungen in `CreateCallback`-Handlern für sensible Operationen hinzu.

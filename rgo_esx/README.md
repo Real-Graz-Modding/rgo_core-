@@ -1,166 +1,176 @@
-# rgo_esx – ESX Compatibility Layer for rgo_core
+# rgo_esx – ESX-Kompatibilitäts-Layer für rgo_core
 
-`rgo_esx` is a **standalone FiveM resource** that provides an ESX 9.0.2.0-compatible
-API surface on top of `rgo_core`.  It allows existing ESX scripts to run with
-**little or no modification** while the underlying framework transitions away
-from `es_extended`.
+`rgo_esx` ist eine **eigenständige FiveM-Ressource**, die eine ESX 9.0.2.0-kompatible  
+API-Oberfläche auf Basis von `rgo_core` bereitstellt.  
+Damit können bestehende ESX-Skripte **ohne oder mit minimalen Änderungen** weiterhin  
+verwendet werden – ohne dass `es_extended` installiert sein muss.
 
 ---
 
-## Requirements
+## ✅ Voraussetzungen
 
-| Dependency | Minimum version |
+| Abhängigkeit | Mindestversion |
 |---|---|
-| [oxmysql](https://github.com/overextended/oxmysql) | latest |
-| FiveM server artefact | 12913+ |
+| [rgo_core](https://github.com/Real-Graz-Modding/rgo_core-) | – |
+| [oxmysql](https://github.com/overextended/oxmysql/releases/latest) | latest |
+| FiveM Server Artifact | 12913+ |
 
-> **Note:** `es_extended` is **not** required when using `rgo_esx`.
+> **Hinweis:** `es_extended` wird **nicht** benötigt.
 
 ---
 
-## Installation
+## 🚀 Installation
 
-1. Copy (or clone) the `rgo_esx` folder into your server's `resources` directory.
-2. Add the following line to your `server.cfg` **before** any resource that
-   depends on ESX:
+1. Stelle sicher, dass `rgo_core` bereits installiert und konfiguriert ist  
+   → Anleitung: [README.md](../README.md)
+
+2. Kopiere den Ordner `rgo_esx` in dein `resources`-Verzeichnis auf dem Server  
+   (er ist bereits Teil des `rgo_core`-Repositories).
+
+3. Füge folgende Zeilen in deine `server.cfg` ein – **in dieser Reihenfolge**:
 
    ```cfg
    ensure oxmysql
+   ensure ox_lib
+   ensure rgo_core
    ensure rgo_esx
    ```
 
-3. Existing resources that call `exports['es_extended']:getSharedObject()` need
-   a one-line change:
-
-   ```lua
-   -- Before
-   ESX = exports['es_extended']:getSharedObject()
-
-   -- After
-   ESX = exports['rgo_esx']:getSharedObject()
-   ```
-
-   Resources that use the legacy event pattern work **unchanged**:
-
-   ```lua
-   TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-   ```
+4. Starte deinen Server neu.
 
 ---
 
-## Usage
+## 🔄 Migration bestehender ESX-Skripte
 
-### Server-side
+Skripte, die `exports['es_extended']:getSharedObject()` aufrufen, benötigen  
+**eine einzige Code-Änderung**:
 
 ```lua
--- Obtain the ESX object
+-- Vorher
+ESX = exports['es_extended']:getSharedObject()
+
+-- Nachher
+ESX = exports['rgo_esx']:getSharedObject()
+```
+
+Skripte, die das **Legacy-Event** verwenden, funktionieren **unverändert**:
+
+```lua
+TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+```
+
+---
+
+## 📖 Verwendung
+
+### Server-seitig
+
+```lua
 local ESX = exports['rgo_esx']:getSharedObject()
 
--- Register a server callback
-ESX.RegisterServerCallback('myResource:getData', function(source, resolve, reject, arg1)
-    resolve({ value = arg1 .. '_processed' })
+-- Server-Callback registrieren
+ESX.RegisterServerCallback('meineRessource:getDaten', function(source, resolve, reject, arg1)
+    resolve({ wert = arg1 .. '_verarbeitet' })
 end)
 
--- Get a player wrapper
+-- Spieler-Wrapper abrufen
 local xPlayer = ESX.GetPlayerFromId(source)
 if xPlayer then
-    print(xPlayer.identifier)          -- license2:...
-    print(xPlayer.getMoney())          -- cash balance
+    print(xPlayer.identifier)           -- license2:...
+    print(xPlayer.getMoney())           -- Bargeld
     xPlayer.addMoney(500)
     xPlayer.setJob('police', 2)
+    xPlayer.showNotification('Willkommen!')
 end
 
--- List all connected player sources
+-- Alle verbundenen Spieler-Sources abrufen
 local sources = ESX.GetPlayers()   -- { 1, 3, 7, ... }
 ```
 
-### Client-side
+### Client-seitig
 
 ```lua
--- Obtain the ESX object
 local ESX = exports['rgo_esx']:getSharedObject()
 
--- Trigger a server callback
-ESX.TriggerServerCallback('myResource:getData', function(result)
-    print(result.value)
-end, 'hello')
+-- Server-Callback auslösen
+ESX.TriggerServerCallback('meineRessource:getDaten', function(result)
+    print(result.wert)
+end, 'hallo')
 
--- Register a client callback (called by TriggerClientCallback on the server)
-ESX.RegisterClientCallback('myResource:clientPing', function(resolve, payload)
+-- Client-Callback registrieren (wird vom Server via TriggerClientCallback aufgerufen)
+ESX.RegisterClientCallback('meineRessource:clientPing', function(resolve, payload)
     resolve({ pong = true, echo = payload })
 end)
 ```
 
 ---
 
-## What is already compatible (MVP)
+## ✅ Bereits kompatibel (MVP)
 
 | Feature | Status |
 |---|---|
 | `exports['rgo_esx']:getSharedObject()` | ✅ |
 | `TriggerEvent('esx:getSharedObject', cb)` | ✅ |
 | `ESX.RegisterServerCallback` | ✅ |
-| `ESX.TriggerServerCallback` (client) | ✅ |
-| `ESX.TriggerClientCallback` (server→client) | ✅ |
-| `ESX.RegisterClientCallback` (client) | ✅ |
+| `ESX.TriggerServerCallback` (Client) | ✅ |
+| `ESX.TriggerClientCallback` (Server→Client) | ✅ |
+| `ESX.RegisterClientCallback` (Client) | ✅ |
 | `ESX.GetPlayerFromId` | ✅ |
 | `ESX.GetPlayers` | ✅ |
 | `ESX.GetPlayerFromIdentifier` | ✅ |
 | `xPlayer.identifier` / `.source` / `.name` | ✅ |
-| `xPlayer.getMoney/addMoney/removeMoney/setMoney` | ✅ |
-| `xPlayer.getAccount/addAccountMoney/removeAccountMoney/setAccountMoney` | ✅ |
-| `xPlayer.getInventoryItem/addInventoryItem/removeInventoryItem/canCarryItem` | ✅ (in-memory stub) |
-| `xPlayer.getJob/setJob` | ✅ |
+| `xPlayer.getMoney / addMoney / removeMoney / setMoney` | ✅ |
+| `xPlayer.getAccount / addAccountMoney / removeAccountMoney / setAccountMoney` | ✅ |
+| `xPlayer.getInventoryItem / addInventoryItem / removeInventoryItem / canCarryItem` | ✅ (In-Memory) |
+| `xPlayer.getJob / setJob` | ✅ |
 | `xPlayer.showNotification` | ✅ |
 | `xPlayer.kick` | ✅ |
-| `xPlayer.getGroup` stub | ✅ |
-| `esx:playerLoaded` event (server + client) | ✅ |
-| `esx:playerDropped` event | ✅ |
-| `esx:setJob` event | ✅ |
-| `esx:showNotification` event | ✅ |
-| oxmysql adapter (`DB.query/single/execute/scalar`) | ✅ skeleton |
+| `xPlayer.getGroup` (Stub) | ✅ |
+| Event `esx:playerLoaded` (Server + Client) | ✅ |
+| Event `esx:playerDropped` | ✅ |
+| Event `esx:setJob` | ✅ |
+| Event `esx:showNotification` | ✅ |
+| oxmysql-Adapter (`DB.query / single / execute / scalar`) | ✅ Grundgerüst |
 
 ---
 
-## What is still missing (roadmap)
+## 🗺️ Roadmap (noch fehlend)
 
-| Feature | Priority |
+| Feature | Priorität |
 |---|---|
-| Full DB persistence (load/save player accounts & inventory from SQL) | High |
-| Job/grade definitions loaded from database | High |
-| `xPlayer.getLoadout/addWeapon/removeWeapon` | Medium |
-| `xPlayer.getPermissions` / admin group checks | Medium |
-| Usable items (`ESX.RegisterUsableItem`) | Medium |
-| `ESX.RegisterCommand` | Medium |
-| Society / billing / addonaccount / addoninventory | Low |
-| ox_inventory bridge for inventory operations | Low |
-| Full ESX 9.x event surface (all `esx:*` events) | Ongoing |
+| Vollständige DB-Persistenz (Spieler, Konten, Inventar laden/speichern) | Hoch |
+| Job- und Gruppen-Definitionen aus der Datenbank | Hoch |
+| `xPlayer.getLoadout / addWeapon / removeWeapon` | Mittel |
+| `xPlayer.getPermissions` / Admin-Gruppen-Prüfungen | Mittel |
+| Verwendbare Items (`ESX.RegisterUsableItem`) | Mittel |
+| `ESX.RegisterCommand` | Mittel |
+| Society / Billing / Addon-Account / Addon-Inventory | Niedrig |
+| ox_inventory-Brücke für Inventar-Operationen | Niedrig |
+| Vollständiger ESX 9.x Event-Surface (alle `esx:*`-Events) | Laufend |
 
-Contributions welcome – see [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+Mitarbeit willkommen – siehe [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ---
 
-## Architecture
+## 🏗️ Architektur
 
 ```
 rgo_esx/
-├── fxmanifest.lua          FiveM resource manifest
+├── fxmanifest.lua          FiveM-Ressourcen-Manifest
 ├── server/
-│   ├── db.lua              oxmysql adapter (thin wrappers)
-│   └── main.lua            ESX shared object, callbacks, player lifecycle
+│   ├── db.lua              oxmysql-Adapter (dünne Wrapper)
+│   └── main.lua            ESX Shared Object, Callbacks, Spieler-Lifecycle
 └── client/
-    └── main.lua            Client-side ESX object, callback routing
+    └── main.lua            Client-seitiges ESX-Objekt, Callback-Routing
 ```
 
-The resource is **self-contained Lua** – no TypeScript/build step required.
+Die Ressource ist **reines Lua** – kein TypeScript- oder Build-Schritt erforderlich.
 
 ---
 
-## Security notes
+## 🔒 Sicherheitshinweise
 
-- All `RegisterNetEvent` handlers validate `source` implicitly through FiveM's
-  net-event routing.
-- Money/account helpers run server-side only; clients cannot directly mutate
-  values.
-- In production, add explicit permission checks inside `RegisterServerCallback`
-  handlers for sensitive operations.
+- Alle `RegisterNetEvent`-Handler validieren `source` implizit durch FiveM's Net-Event-Routing.
+- Geld- und Konto-Operationen laufen **ausschließlich serverseitig** – Clients können Werte nicht direkt manipulieren.
+- Füge in Produktionsumgebungen explizite Berechtigungsprüfungen in `RegisterServerCallback`-Handlern für sensible Operationen hinzu.
+
