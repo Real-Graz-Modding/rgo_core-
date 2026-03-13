@@ -61,7 +61,7 @@ local function BuildXPlayer(source)
     -- Stub account/inventory/job structures (ESX 9.x defaults)
     local accounts = {
         { name = 'money',       label = 'Cash',         money = 0 },
-        { name = 'bank',        label = 'Bank',         money = 5000 },
+        { name = 'bank',        label = 'Bank',         money = ESXConfig.StartingAccountMoney.bank },
         { name = 'black_money', label = 'Black Money',  money = 0 },
     }
 
@@ -222,6 +222,10 @@ local function BuildXPlayer(source)
 
     function xPlayer.kick(reason)
         DropPlayer(source, reason or 'Kicked')
+    end
+
+    function xPlayer.triggerEvent(eventName, ...)
+        TriggerClientEvent(eventName, source, ...)
     end
 
     -- ── Coords helpers (stubs) ────────────────────────────────────────────

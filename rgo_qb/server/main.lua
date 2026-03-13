@@ -32,6 +32,9 @@ local Permissions = {}
 ---@type table<string, function>
 local UsableItems = {}
 
+-- Default starting money amounts – referenced by both BuildPlayer and QBCore.Config.
+local DefaultMoneyTypes = { cash = 500, bank = 5000, crypto = 0 }
+
 -- Monotonic counter used to make callback IDs unique within the same tick.
 local _cbCounter = 0
 local function NextCbId(prefix)
@@ -59,7 +62,7 @@ local function BuildPlayer(source)
     -- Deterministic citizenid stub (stable within one session)
     local citizenid = ('STRT' .. string.format('%06d', source))
 
-    local money    = { cash = 500, bank = 5000, crypto = 0 }
+    local money    = { cash = DefaultMoneyTypes.cash, bank = DefaultMoneyTypes.bank, crypto = DefaultMoneyTypes.crypto }
     local job      = {
         name   = 'unemployed',
         label  = 'Civilian',
@@ -249,9 +252,10 @@ local function BuildPlayer(source)
     end
 
     local Player = {
-        PlayerData = PlayerData,
-        Functions  = Functions,
-        _loaded    = false,
+        PlayerData   = PlayerData,
+        Functions    = Functions,
+        TriggerEvent = Functions.TriggerEvent,
+        _loaded      = false,
     }
 
     return Player
@@ -374,7 +378,7 @@ local QBCore = {
     Version = '1.3.0-rgo_qb',
     Config  = {
         Locale     = 'en',
-        Money      = { MoneyTypes = { cash = 500, bank = 5000, crypto = 0 } },
+        Money      = { MoneyTypes = { cash = DefaultMoneyTypes.cash, bank = DefaultMoneyTypes.bank, crypto = DefaultMoneyTypes.crypto } },
         Server     = { name = 'rgo Server', discord = '', cfxid = '', prefix = '/' },
         MaxPlayers = 64,
     },
