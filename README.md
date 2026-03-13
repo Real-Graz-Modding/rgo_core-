@@ -267,11 +267,9 @@ sed -i 's/overextended/rgo_server/g' resources/[rgo]/ox_core/sql/install.sql
 mysql -u root -p < resources/[rgo]/ox_core/sql/install.sql
 ```
 
-**3c – ox_inventory-Tabellen anlegen:**
+**3c – ox_inventory-Tabellen:**
 
-```bash
-mysql -u root -p < resources/[ox]/ox_inventory/ox_inventory.sql
-```
+> ℹ️ **Hinweis:** ox_inventory richtet sein Datenbankschema (Tabelle `ox_inventory`, Spalten `trunk`/`glovebox`) automatisch beim ersten Start ein. Es ist kein manueller SQL-Import erforderlich.
 
 #### Schritt 4 – server.cfg konfigurieren
 

@@ -81,9 +81,6 @@ tasks:
   - action: unzip
     src: ./tmp/ox_inventory.zip
     dest: ./resources/[ox]
-  ## ox_inventory – SQL-Schema einrichten (owned_vehicles, licenses, etc.)
-  - action: query_database
-    file: ./resources/[ox]/ox_inventory/ox_inventory.sql
   ## pma-voice
   - action: download_github
     src: https://github.com/AvarianKnight/pma-voice
