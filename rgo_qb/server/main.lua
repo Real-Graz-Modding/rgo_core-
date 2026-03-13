@@ -264,17 +264,17 @@ end
 -- ─── Player lifecycle ─────────────────────────────────────────────────────────
 
 AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
+    -- Slot wird erst bei playerReady vollständig initialisiert.
     local source = source
-    Players[source] = BuildPlayer(source)
 end)
 
 AddEventHandler('playerDropped', function(reason)
     local source = source
-    if Players[source] then
+    if source and Players[source] then
         TriggerEvent('QBCore:Server:PlayerUnload', source)
         Players[source] = nil
     end
-    Permissions[source] = nil
+    if source then Permissions[source] = nil end
 end)
 
 RegisterNetEvent('rgo_qb:playerReady', function()

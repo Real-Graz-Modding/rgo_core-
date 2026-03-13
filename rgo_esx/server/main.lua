@@ -245,13 +245,16 @@ end
 -- ─── Player lifecycle ─────────────────────────────────────────────────────────
 
 AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
+    -- xPlayer wird erst bei playerReady vollständig aufgebaut,
+    -- um Race-Conditions beim Start zu vermeiden.
+    -- Wir registrieren nur einen leeren Slot.
     local source = source
-    Players[source] = BuildXPlayer(source)
+    -- Kein BuildXPlayer hier – nur Slot reservieren
 end)
 
 AddEventHandler('playerDropped', function(reason)
     local source = source
-    if Players[source] then
+    if source and Players[source] then
         TriggerEvent('esx:playerDropped', source, reason)
         Players[source] = nil
     end
