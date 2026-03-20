@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "@communityox/ox_core",
+      "name": "@real-graz-modding/rgo_core",
       "dependencies": {
         "@biomejs/biome": "^1.9.4",
         "@communityox/ox_lib": "^3.29.0",
