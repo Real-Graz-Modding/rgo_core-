@@ -2,7 +2,7 @@
 
 # rgo_core
 
-**Ein modernes, leistungsstarkes FiveM-Framework von Real-Graz-Modding – basierend auf rgo_core.**  
+**Ein modernes, leistungsstarkes FiveM-Framework von Real-Graz-Modding – basierend auf ox_core.**  
 Vollständig kompatibel mit ESX- und QBCore-Skripten. **Kein Umschreiben. Kein Neulernen. Einfach starten.**
 
 [![GitHub contributors](https://img.shields.io/github/contributors/Real-Graz-Modding/rgo_core-?logo=github&style=flat-square)](https://github.com/Real-Graz-Modding/rgo_core-/graphs/contributors)
@@ -45,7 +45,7 @@ Vollständig kompatibel mit ESX- und QBCore-Skripten. **Kein Umschreiben. Kein N
 
 ## 🤔 Was ist rgo_core?
 
-**rgo_core** ist ein vollwertiges FiveM-Rollenspiel-Framework für GTA V-Multiplayer-Server. Es wurde auf Basis von [rgo_core](https://github.com/overextended/ox_core) entwickelt und von Real-Graz-Modding speziell für Communities erweitert, die von ESX oder QBCore migrieren – oder beides gleichzeitig nutzen wollen.
+**rgo_core** ist ein vollwertiges FiveM-Rollenspiel-Framework für GTA V-Multiplayer-Server. Es wurde auf Basis von [ox_core](https://github.com/overextended/ox_core) entwickelt und von Real-Graz-Modding speziell für Communities erweitert, die von ESX oder QBCore migrieren – oder beides gleichzeitig nutzen wollen.
 
 ### Das Problem, das rgo_core löst
 
@@ -1181,7 +1181,7 @@ Verwende stattdessen ein eigenes Präfix, z.B. `rgo_`, `meinserver_` oder einen 
 ## 📄 Lizenz
 
 Copyright © Real-Graz-Modding  
-Basiert auf [rgo_core](https://github.com/overextended/ox_core) © Overextended
+Basiert auf [ox_core](https://github.com/overextended/ox_core) © Overextended
 
 Dieses Programm ist freie Software gemäß der  
 **GNU Lesser General Public License v3.0** (oder neuer).  
