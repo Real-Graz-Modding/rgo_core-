@@ -24003,7 +24003,7 @@ exports("SpawnVehicle", SpawnVehicle);
 // server/index.ts
 init_server();
 if (!DEBUG) {
-  versionCheck("Real-Graz-Modding/rgo_core-");
+  versionCheck("Real-Graz-Modding/xn_core");
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

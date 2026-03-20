@@ -8,5 +8,5 @@ import { versionCheck } from '@communityox/ox_lib/server';
 import { DEBUG } from 'config';
 
 if (!DEBUG) {
-  versionCheck('Real-Graz-Modding/rgo_core-');
+  versionCheck('Real-Graz-Modding/xn_core');
 }
