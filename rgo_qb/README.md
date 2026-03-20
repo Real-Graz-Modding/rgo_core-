@@ -51,7 +51,7 @@ Bestehende QBCore-Skripte laufen **ohne jede Änderung** – `qb-core` wird **ni
    ```cfg
    ensure oxmysql
    ensure ox_lib
-   ensure ox_core     # rgo_core
+   ensure rgo_core     # rgo_core
    ensure QBCore      # QBCore-Kompatibilitäts-Layer
    ```
 

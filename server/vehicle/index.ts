@@ -29,7 +29,7 @@ export async function CreateVehicle(
 
   if (!vehicleData)
     throw new Error(
-      `Failed to create vehicle '${data.model}' (model is invalid).\nEnsure vehicle exists in '@ox_core/common/data/vehicles.json'`,
+      `Failed to create vehicle '${data.model}' (model is invalid).\nEnsure vehicle exists in '@rgo_core/common/data/vehicles.json'`,
     );
 
   if (data.id) {

@@ -10,7 +10,7 @@ export interface OxCommon {
   GetVehicleNetworkType: typeof GetVehicleNetworkType;
 }
 
-export const Ox = exports.ox_core as OxCommon;
+export const Ox = exports.rgo_core as OxCommon;
 
 export function GetGroup(name: string): OxGroup {
   return GlobalState[`group.${name}`];

@@ -52,7 +52,7 @@ Bestehende ESX-Skripte laufen **ohne jede Änderung** – `es_extended` wird **n
    ```cfg
    ensure oxmysql
    ensure ox_lib
-   ensure ox_core        # rgo_core
+   ensure rgo_core        # rgo_core
    ensure es_extended    # ESX-Kompatibilitäts-Layer
    ```
 

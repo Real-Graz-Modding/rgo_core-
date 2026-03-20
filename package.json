@@ -1,6 +1,6 @@
 {
-  "name": "@communityox/ox_core",
-  "author": "Overextended",
+  "name": "@real-graz-modding/rgo_core",
+  "author": "Real-Graz-Modding",
   "version": "1.5.9",
   "license": "LGPL-3.0-or-later",
   "description": "A modern FiveM framework.",
@@ -30,9 +30,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CommunityOx/ox_core.git"
+    "url": "git+https://github.com/Real-Graz-Modding/rgo_core-.git"
   },
-  "bugs": "https://github.com/CommunityOx/ox_core/issues",
+  "bugs": "https://github.com/Real-Graz-Modding/rgo_core-/issues",
   "devDependencies": {
     "@citizenfx/client": "latest",
     "@citizenfx/server": "latest",
