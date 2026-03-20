@@ -7,8 +7,10 @@
       • ESX.RegisterServerCallback / TriggerClientCallback
       • ESX.GetPlayerFromId / GetPlayers / GetPlayerFromIdentifier / GetExtendedPlayers
       • ESX.RegisterCommand / RegisterUsableItem / UseItem
+      • ESX.GetJobs()                                  (groups cache from DB)
       • xPlayer wrapper with full ESX 9.x API surface
       • Lifecycle events: esx:playerLoaded, esx:playerDropped, esx:setJob
+      • Group/job data loaded from and persisted to the database
 --]]
 
 -- ─── Internals ────────────────────────────────────────────────────────────────
@@ -40,6 +42,44 @@ local function NextCbId(prefix)
     return ('%s_%s_%s'):format(prefix, GetGameTimer(), _cbCounter)
 end
 
+-- ─── Groups cache (loaded from DB at startup) ─────────────────────────────────
+-- Keyed by group name: { name, label, grades = { [grade] = gradeLabel } }
+
+---@type table<string, table>
+local Groups = {}
+
+local function LoadGroupsCache()
+    local ok, result = pcall(function() return DB.loadGroups() end)
+    if ok and result then
+        Groups = result
+        local count = 0
+        for _ in pairs(Groups) do count = count + 1 end
+        print(('[es_extended] Loaded %d groups from database'):format(count))
+    else
+        print('[es_extended] WARNING: Could not load groups from database – falling back to empty cache')
+    end
+end
+
+-- ─── Helper: build an ESX job table from a group name + grade ─────────────────
+
+---@param name  string
+---@param grade number
+---@return table
+local function BuildJobTable(name, grade)
+    local gradeNum = tonumber(grade) or 0
+    local groupInfo = Groups[name]
+    local jobLabel   = groupInfo and groupInfo.label or name
+    local gradeLabel = (groupInfo and groupInfo.grades and groupInfo.grades[gradeNum])
+                       or tostring(gradeNum)
+    return {
+        name         = name,
+        label        = jobLabel,
+        grade        = gradeNum,
+        grade_label  = gradeLabel,
+        grade_salary = 0,
+    }
+end
+
 -- ─── xPlayer factory ─────────────────────────────────────────────────────────
 
 ---Build a minimal xPlayer wrapper around a connected player.
@@ -58,7 +98,8 @@ local function BuildXPlayer(source)
 
     local license = identifiers['license2'] or identifiers['license'] or ('license:unknown_' .. tostring(source))
 
-    -- Stub account/inventory/job structures (ESX 9.x defaults)
+    -- Default account/inventory/job structures (ESX 9.x defaults)
+    -- These are overwritten with live DB values during playerReady.
     local accounts = {
         { name = 'money',       label = 'Cash',         money = 0 },
         { name = 'bank',        label = 'Bank',         money = ESXConfig.StartingAccountMoney.bank },
@@ -69,16 +110,19 @@ local function BuildXPlayer(source)
     local inventory = {}
 
     local xPlayer = {
-        source      = source,
-        identifier  = license,
-        name        = GetPlayerName(source) or 'Unknown',
-        accounts    = accounts,
-        inventory   = inventory,
-        job         = job,
-        loadout     = {},
-        _loaded     = false,
-        _group      = 'user',
-        _metadata   = {},
+        source          = source,
+        identifier      = license,
+        name            = GetPlayerName(source) or 'Unknown',
+        accounts        = accounts,
+        inventory       = inventory,
+        job             = job,
+        loadout         = {},
+        _loaded         = false,
+        _group          = 'user',
+        _metadata       = {},
+        -- DB identifiers – populated during playerReady
+        _charId         = nil,
+        _bankAccountId  = nil,
     }
 
     -- ── Account helpers ────────────────────────────────────────────────────
@@ -91,17 +135,32 @@ local function BuildXPlayer(source)
 
     function xPlayer.addAccountMoney(name, amount)
         local acc = xPlayer.getAccount(name)
-        if acc then acc.money = acc.money + math.max(0, amount) end
+        if acc then
+            acc.money = acc.money + math.max(0, amount)
+            if name == 'bank' and xPlayer._bankAccountId then
+                DB.setAccountBalance(xPlayer._bankAccountId, acc.money)
+            end
+        end
     end
 
     function xPlayer.removeAccountMoney(name, amount)
         local acc = xPlayer.getAccount(name)
-        if acc then acc.money = math.max(0, acc.money - amount) end
+        if acc then
+            acc.money = math.max(0, acc.money - amount)
+            if name == 'bank' and xPlayer._bankAccountId then
+                DB.setAccountBalance(xPlayer._bankAccountId, acc.money)
+            end
+        end
     end
 
     function xPlayer.setAccountMoney(name, amount)
         local acc = xPlayer.getAccount(name)
-        if acc then acc.money = math.max(0, amount) end
+        if acc then
+            acc.money = math.max(0, amount)
+            if name == 'bank' and xPlayer._bankAccountId then
+                DB.setAccountBalance(xPlayer._bankAccountId, acc.money)
+            end
+        end
     end
 
     -- Convenience wrappers for the primary 'money' account
@@ -168,13 +227,12 @@ local function BuildXPlayer(source)
     end
 
     function xPlayer.setJob(name, grade)
-        xPlayer.job = {
-            name         = name,
-            label        = name,
-            grade        = grade or 0,
-            grade_label  = tostring(grade or 0),
-            grade_salary = 0,
-        }
+        local gradeNum = tonumber(grade) or 0
+        xPlayer.job = BuildJobTable(name, gradeNum)
+        -- Persist to character_groups if we have a charId and it's a real job
+        if xPlayer._charId and name ~= 'unemployed' then
+            DB.setPlayerJob(xPlayer._charId, name, gradeNum)
+        end
         TriggerClientEvent('esx:setJob', source, xPlayer.job)
         TriggerEvent('esx:setJob', source, xPlayer.job)
     end
@@ -258,6 +316,7 @@ AddEventHandler('playerDropped', function(reason)
 end)
 
 -- playerLoaded trigger – fires when a client signals it is ready.
+-- Loads job and bank account from the database, then fires the lifecycle events.
 RegisterNetEvent('rgo_esx:playerReady', function()
     local source = source
     if not Players[source] then
@@ -266,6 +325,27 @@ RegisterNetEvent('rgo_esx:playerReady', function()
 
     local xPlayer = Players[source]
     xPlayer._loaded = true
+
+    -- ── Load DB data ────────────────────────────────────────────────────────
+    local ok, charId = pcall(function() return DB.getCharId(xPlayer.identifier) end)
+    if ok and charId then
+        xPlayer._charId = charId
+
+        -- Load active job from character_groups
+        local jobOk, jobRow = pcall(function() return DB.getPlayerJob(charId) end)
+        if jobOk and jobRow then
+            xPlayer.job = BuildJobTable(jobRow.name, jobRow.grade)
+            -- Note: xPlayer._group represents the permission/admin group (e.g. 'user', 'admin'),
+            -- not the job, so it is intentionally not overwritten here.
+        end
+
+        -- Load bank account balance
+        local accOk, accRow = pcall(function() return DB.getPlayerBankAccount(charId) end)
+        if accOk and accRow then
+            xPlayer._bankAccountId = accRow.id
+            xPlayer.setAccountMoney('bank', accRow.balance)
+        end
+    end
 
     TriggerEvent('esx:playerLoaded', source, xPlayer)
     TriggerClientEvent('esx:playerLoaded', source, {
@@ -427,6 +507,11 @@ local ESX = {
         if xPlayer then xPlayer.removeInventoryItem(name, count) end
     end,
 
+    -- Jobs / groups (from DB cache)
+    GetJobs = function()
+        return Groups
+    end,
+
     -- Config
     GetConfig = function()
         return ESXConfig
@@ -449,3 +534,13 @@ AddEventHandler('esx:getSharedObject', function(cb)
 end)
 
 print('[es_extended] ESX compatibility layer started (v1.9.4)')
+
+-- Load groups from database into cache.
+-- Retries until oxmysql is started, then loads once.
+Citizen.CreateThread(function()
+    while GetResourceState('oxmysql') ~= 'started' do
+        Wait(500)
+    end
+    Wait(0) -- yield so oxmysql exports are bound
+    LoadGroupsCache()
+end)
