@@ -4,9 +4,9 @@ class AccountInterface {
   constructor(public accountId: number) {}
 }
 
-Object.keys(exports.ox_core.GetAccountCalls()).forEach((method: string) => {
+Object.keys(exports.rgo_core.GetAccountCalls()).forEach((method: string) => {
   (AccountInterface.prototype as any)[method] = function (...args: any[]) {
-    return exports.ox_core.CallAccount(this.accountId, method, ...args);
+    return exports.rgo_core.CallAccount(this.accountId, method, ...args);
   };
 });
 
@@ -23,21 +23,21 @@ function CreateAccountInstance(account?: _OxAccount) {
 }
 
 export async function GetAccount(accountId: number) {
-  const account = await exports.ox_core.GetAccount(accountId);
+  const account = await exports.rgo_core.GetAccount(accountId);
   return CreateAccountInstance(account);
 }
 
 export async function GetCharacterAccount(charId: number | string) {
-  const account = await exports.ox_core.GetCharacterAccount(charId);
+  const account = await exports.rgo_core.GetCharacterAccount(charId);
   return CreateAccountInstance(account);
 }
 
 export async function GetGroupAccount(groupName: string) {
-  const account = await exports.ox_core.GetGroupAccount(groupName);
+  const account = await exports.rgo_core.GetGroupAccount(groupName);
   return CreateAccountInstance(account);
 }
 
 export async function CreateAccount(owner: number | string, label: string) {
-  const account = await exports.ox_core.CreateAccount(owner, label);
+  const account = await exports.rgo_core.CreateAccount(owner, label);
   return CreateAccountInstance(account);
 }

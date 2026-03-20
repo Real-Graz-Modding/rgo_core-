@@ -433,7 +433,7 @@
 
   // common/index.ts
   function LoadDataFile(file) {
-    return JSON.parse(LoadResourceFile("ox_core", `/common/data/${file}.json`));
+    return JSON.parse(LoadResourceFile(GetCurrentResourceName(), `/common/data/${file}.json`));
   }
   function GetGroupPermissions(groupName) {
     return GlobalState[`group.${groupName}:permissions`] || {};

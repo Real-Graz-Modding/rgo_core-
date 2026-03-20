@@ -2,7 +2,7 @@
 
 # rgo_core
 
-**Ein modernes, leistungsstarkes FiveM-Framework von Real-Graz-Modding – basierend auf ox_core.**  
+**Ein modernes, leistungsstarkes FiveM-Framework von Real-Graz-Modding – basierend auf rgo_core.**  
 Vollständig kompatibel mit ESX- und QBCore-Skripten. **Kein Umschreiben. Kein Neulernen. Einfach starten.**
 
 [![GitHub contributors](https://img.shields.io/github/contributors/Real-Graz-Modding/rgo_core-?logo=github&style=flat-square)](https://github.com/Real-Graz-Modding/rgo_core-/graphs/contributors)
@@ -30,7 +30,7 @@ Vollständig kompatibel mit ESX- und QBCore-Skripten. **Kein Umschreiben. Kein N
    - [QBCore-Skripte (QBCore)](#-qbcore-skripte-qbcore)
    - [Standalone-Skripte](#-standalone-skripte)
    - [Andere Frameworks (vRP, ND, …)](#-andere-frameworks-vrp-nd-)
-8. [Native ox_core API (Lua)](#-native-ox_core-api-lua)
+8. [Native rgo_core API (Lua)](#-native-rgo_core-api-lua)
 9. [Datenbank-Schema](#️-datenbank-schema)
 10. [Optionale Brücken (Bridges)](#-optionale-brücken-bridges)
 11. [Projektstruktur](#-projektstruktur)
@@ -45,7 +45,7 @@ Vollständig kompatibel mit ESX- und QBCore-Skripten. **Kein Umschreiben. Kein N
 
 ## 🤔 Was ist rgo_core?
 
-**rgo_core** ist ein vollwertiges FiveM-Rollenspiel-Framework für GTA V-Multiplayer-Server. Es wurde auf Basis von [ox_core](https://github.com/overextended/ox_core) entwickelt und von Real-Graz-Modding speziell für Communities erweitert, die von ESX oder QBCore migrieren – oder beides gleichzeitig nutzen wollen.
+**rgo_core** ist ein vollwertiges FiveM-Rollenspiel-Framework für GTA V-Multiplayer-Server. Es wurde auf Basis von [rgo_core](https://github.com/overextended/rgo_core) entwickelt und von Real-Graz-Modding speziell für Communities erweitert, die von ESX oder QBCore migrieren – oder beides gleichzeitig nutzen wollen.
 
 ### Das Problem, das rgo_core löst
 
@@ -79,7 +79,7 @@ Beide Layer können gleichzeitig aktiv sein.
 │                         FiveM Server                            │
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │                      ox_core (rgo_core)                  │   │
+│  │                      rgo_core (rgo_core)                  │   │
 │  │  TypeScript / JavaScript – Kern des Frameworks           │   │
 │  │  • Spieler, Charaktere, Fahrzeuge, Konten, Gruppen       │   │
 │  └──────────────┬─────────────────┬───────────────────────┘   │
@@ -102,8 +102,8 @@ Beide Layer können gleichzeitig aktiv sein.
 ```
 
 Der Datenfluss:
-1. Spieler verbindet sich → ox_core erstellt/lädt Charakter-Daten aus der Datenbank.
-2. `rgo_esx` / `rgo_qb` mappen ox_core-Daten auf das ESX/QBCore-API-Format.
+1. Spieler verbindet sich → rgo_core erstellt/lädt Charakter-Daten aus der Datenbank.
+2. `rgo_esx` / `rgo_qb` mappen rgo_core-Daten auf das ESX/QBCore-API-Format.
 3. Bestehende Skripte rufen ESX/QBCore-Funktionen auf – ohne es zu merken.
 4. Alle Geld- und Inventar-Operationen laufen **ausschließlich serverseitig**.
 
@@ -176,7 +176,7 @@ Das Rezept lädt alle folgenden Ressourcen herunter und richtet sie ein:
 
 | Ressource | Verzeichnis | Funktion |
 |---|---|---|
-| rgo_core (Framework) | `[rgo]/ox_core` | Kern-Framework |
+| rgo_core (Framework) | `[rgo]/rgo_core` | Kern-Framework |
 | rgo_esx (ESX-Layer) | `[rgo]/es_extended` | ESX-Kompatibilität |
 | rgo_qb (QBCore-Layer) | `[rgo]/QBCore` | QBCore-Kompatibilität |
 | oxmysql | `[ox]/oxmysql` | Datenbankanbindung |
@@ -222,21 +222,21 @@ mkdir -p [rgo]
 cd [rgo]
 
 # Repository klonen (enthält rgo_core, rgo_esx und rgo_qb)
-git clone https://github.com/Real-Graz-Modding/rgo_core- ox_core
+git clone https://github.com/Real-Graz-Modding/rgo_core- rgo_core
 
 # ESX-Kompatibilitäts-Layer einrichten
-cp -r ox_core/rgo_esx es_extended
+cp -r rgo_core/rgo_esx es_extended
 
 # QBCore-Kompatibilitäts-Layer einrichten
-cp -r ox_core/rgo_qb QBCore
+cp -r rgo_core/rgo_qb QBCore
 ```
 
 **Variante B – ohne Git:**
 
 1. Lade die neueste Version vom [Releases-Tab](https://github.com/Real-Graz-Modding/rgo_core-/releases) herunter.
-2. Entpacke das Archiv nach `resources/[rgo]/ox_core`.
-3. Kopiere `resources/[rgo]/ox_core/rgo_esx` nach `resources/[rgo]/es_extended`.
-4. Kopiere `resources/[rgo]/ox_core/rgo_qb` nach `resources/[rgo]/QBCore`.
+2. Entpacke das Archiv nach `resources/[rgo]/rgo_core`.
+3. Kopiere `resources/[rgo]/rgo_core/rgo_esx` nach `resources/[rgo]/es_extended`.
+4. Kopiere `resources/[rgo]/rgo_core/rgo_qb` nach `resources/[rgo]/QBCore`.
 
 #### Schritt 2 – Abhängigkeiten herunterladen
 
@@ -254,17 +254,17 @@ Lade die folgenden Ressourcen manuell herunter und entpacke sie in `resources/[o
 
 **3a – Datenbanknamen anpassen:**
 
-Öffne `resources/[rgo]/ox_core/sql/install.sql` in einem Texteditor und ersetze alle Vorkommen von `overextended` durch deinen gewünschten Datenbanknamen (z.B. `rgo_server`).
+Öffne `resources/[rgo]/rgo_core/sql/install.sql` in einem Texteditor und ersetze alle Vorkommen von `overextended` durch deinen gewünschten Datenbanknamen (z.B. `rgo_server`).
 
 Unter Linux/macOS mit `sed`:
 ```bash
-sed -i 's/overextended/rgo_server/g' resources/[rgo]/ox_core/sql/install.sql
+sed -i 's/overextended/rgo_server/g' resources/[rgo]/rgo_core/sql/install.sql
 ```
 
 **3b – Framework-Tabellen anlegen:**
 
 ```bash
-mysql -u root -p < resources/[rgo]/ox_core/sql/install.sql
+mysql -u root -p < resources/[rgo]/rgo_core/sql/install.sql
 ```
 
 **3c – ox_inventory-Tabellen:**
@@ -314,7 +314,7 @@ ensure hardcap
 # ── Kern-Abhängigkeiten (Reihenfolge wichtig!) ────────────────────────────────
 ensure oxmysql
 ensure ox_lib
-ensure ox_core          # rgo_core Kern-Framework
+ensure rgo_core          # rgo_core Kern-Framework
 
 # ── Inventar ──────────────────────────────────────────────────────────────────
 ensure ox_inventory
@@ -339,7 +339,7 @@ ensure pma-voice
 
 ```bash
 # Im rgo_core-Verzeichnis:
-cd resources/[rgo]/ox_core
+cd resources/[rgo]/rgo_core
 
 # Abhängigkeiten installieren
 bun install
@@ -425,7 +425,7 @@ Die Ressource `rgo_esx` registriert sich als **`es_extended`**. Bestehende ESX-S
 **Aktivieren:**
 
 ```cfg
-ensure ox_core
+ensure rgo_core
 ensure es_extended
 ```
 
@@ -521,7 +521,7 @@ Die Ressource `rgo_qb` registriert sich als **`QBCore`**. Bestehende QBCore-Skri
 **Aktivieren:**
 
 ```cfg
-ensure ox_core
+ensure rgo_core
 ensure QBCore
 ```
 
@@ -643,7 +643,7 @@ rgo_core kommt derzeit mit eingebauten Layern für **ESX** und **QBCore** – di
 |---|---|---|
 | **ESX** (`es_extended`) | ✅ eingebaut | `rgo_esx` – vollständige API-Kompatibilität |
 | **QBCore** | ✅ eingebaut | `rgo_qb` – vollständige API-Kompatibilität |
-| **ox_core nativ** | ✅ eingebaut | rgo_core IS ox_core – native Ressourcen laufen direkt |
+| **rgo_core nativ** | ✅ eingebaut | rgo_core IS rgo_core – native Ressourcen laufen direkt |
 | **Standalone** | ✅ nativ | Kein Layer nötig |
 | **vRP** | 🔜 Community | Eigener Layer per Pull Request möglich |
 | **ND Framework** | 🔜 Community | Eigener Layer per Pull Request möglich |
@@ -665,9 +665,9 @@ rgo_meinframework/
 
 ---
 
-## 📚 Native ox_core API (Lua)
+## 📚 Native rgo_core API (Lua)
 
-Wenn du eigene Ressourcen für rgo_core schreibst, kannst du die **native ox_core Lua-API** verwenden. Diese ist leistungsfähiger als die ESX/QBCore-Layer und direkt im `lib/`-Verzeichnis des Frameworks verfügbar.
+Wenn du eigene Ressourcen für rgo_core schreibst, kannst du die **native rgo_core Lua-API** verwenden. Diese ist leistungsfähiger als die ESX/QBCore-Layer und direkt im `lib/`-Verzeichnis des Frameworks verfügbar.
 
 > ℹ️ Die native API ist die bevorzugte Methode für **neue Ressourcen**. ESX/QBCore-Layer sind für Migration bestehender Skripte gedacht.
 
@@ -675,30 +675,30 @@ Wenn du eigene Ressourcen für rgo_core schreibst, kannst du die **native ox_cor
 
 ```lua
 -- In deinem Skript (server oder client):
--- ox_lib und ox_core müssen als dependency deklariert sein (fxmanifest.lua):
--- dependencies { 'ox_core', 'ox_lib' }
+-- ox_lib und rgo_core müssen als dependency deklariert sein (fxmanifest.lua):
+-- dependencies { 'rgo_core', 'ox_lib' }
 
-local Ox = exports.ox_core
+local Ox = exports.rgo_core
 ```
 
 ### Spieler (Server)
 
 ```lua
 -- Spieler nach Source-ID
-local player = exports.ox_core:GetPlayer(source)
+local player = exports.rgo_core:GetPlayer(source)
 
 -- Spieler nach userId
-local player = exports.ox_core:GetPlayerFromUserId(userId)
+local player = exports.rgo_core:GetPlayerFromUserId(userId)
 
 -- Spieler nach charId
-local player = exports.ox_core:GetPlayerFromCharId(charId)
+local player = exports.rgo_core:GetPlayerFromCharId(charId)
 
 -- Alle Spieler (optional mit Filter)
-local players = exports.ox_core:GetPlayers()
-local officers = exports.ox_core:GetPlayers({ job = 'police' })
+local players = exports.rgo_core:GetPlayers()
+local officers = exports.rgo_core:GetPlayers({ job = 'police' })
 
 -- Spieler nach beliebigem Filter
-local player = exports.ox_core:GetPlayerFromFilter({ charId = 42 })
+local player = exports.rgo_core:GetPlayerFromFilter({ charId = 42 })
 
 -- Eigenschaften eines Spielers
 player.source      -- Netzwerk-ID
@@ -707,7 +707,7 @@ player.charId      -- Charakter-ID
 player.identifier  -- "license2:..."
 player.username    -- Spielername
 
--- Methoden (über ox_core:CallPlayer)
+-- Methoden (über rgo_core:CallPlayer)
 player:getGroup('police')         -- Grade in der Gruppe
 player:getGroupByType('job')      -- Aktiver Job
 player:getAccount()               -- Bank-Kontoobjekt
@@ -719,16 +719,16 @@ player:getState()                 -- Player state bag
 
 ```lua
 -- Fahrzeug nach verschiedenen Kriterien abrufen
-local vehicle = exports.ox_core:GetVehicleFromEntity(entityId)
-local vehicle = exports.ox_core:GetVehicleFromNetId(netId)
-local vehicle = exports.ox_core:GetVehicleFromVin('EXAMPLEVIN123456')
+local vehicle = exports.rgo_core:GetVehicleFromEntity(entityId)
+local vehicle = exports.rgo_core:GetVehicleFromNetId(netId)
+local vehicle = exports.rgo_core:GetVehicleFromVin('EXAMPLEVIN123456')
 
 -- Alle Fahrzeuge (optional mit Filter)
-local vehicles = exports.ox_core:GetVehicles()
-local policeVehicles = exports.ox_core:GetVehicles({ group = 'police' })
+local vehicles = exports.rgo_core:GetVehicles()
+local policeVehicles = exports.rgo_core:GetVehicles({ group = 'police' })
 
 -- Fahrzeug erstellen (in der DB registrieren)
-local vehicle = exports.ox_core:CreateVehicle({
+local vehicle = exports.rgo_core:CreateVehicle({
     model  = 'adder',
     plate  = 'RGO1234',
     owner  = charId,        -- optional
@@ -736,7 +736,7 @@ local vehicle = exports.ox_core:CreateVehicle({
 }, coords, heading)
 
 -- Fahrzeug aus DB spawnen
-local vehicle = exports.ox_core:SpawnVehicle(dbId, coords, heading)
+local vehicle = exports.rgo_core:SpawnVehicle(dbId, coords, heading)
 
 -- Eigenschaften
 vehicle.vin    -- eindeutige VIN
@@ -749,16 +749,16 @@ vehicle.entity -- Entity-ID
 
 ```lua
 -- Konto eines Charakters
-local account = exports.ox_core:GetCharacterAccount(charId)
+local account = exports.rgo_core:GetCharacterAccount(charId)
 
 -- Konto einer Gruppe
-local account = exports.ox_core:GetGroupAccount(groupName)
+local account = exports.rgo_core:GetGroupAccount(groupName)
 
 -- Konto per ID
-local account = exports.ox_core:GetAccount(accountId)
+local account = exports.rgo_core:GetAccount(accountId)
 
 -- Neues Konto erstellen
-local account = exports.ox_core:CreateAccount(owner, label)
+local account = exports.rgo_core:CreateAccount(owner, label)
 ```
 
 ---
@@ -831,8 +831,8 @@ ox_inventory ersetzt das einfache JSON-Inventar durch ein vollwertiges Slot-basi
 
 **Installation:**
 ```cfg
-ensure ox_core
-ensure ox_inventory   # Nach ox_core, vor allen Ressourcen die es nutzen
+ensure rgo_core
+ensure ox_inventory   # Nach rgo_core, vor allen Ressourcen die es nutzen
 ```
 
 Nach dem Start von ox_inventory werden Inventardaten automatisch in der `ox_inventory`-Tabelle gespeichert statt in `character_inventory`.
@@ -843,7 +843,7 @@ rgo_core enthält eine eingebaute Bridge für NPWD.
 
 **Installation:**
 ```cfg
-ensure ox_core
+ensure rgo_core
 ensure npwd
 ```
 
@@ -852,7 +852,7 @@ Die Bridge (`server/bridge/npwd.ts`) verbindet rgo_core-Charakterdaten mit dem N
 ### pma-voice
 
 ```cfg
-ensure pma-voice   # Startet nach ox_core
+ensure pma-voice   # Startet nach rgo_core
 ```
 
 pma-voice funktioniert out-of-the-box ohne weitere Konfiguration.
@@ -935,12 +935,12 @@ rgo_core-/
 
 ## ❓ Häufige Fragen & Fehlersuche (FAQ)
 
-### ❌ „Could not find resource `ox_core`"
+### ❌ „Could not find resource `rgo_core`"
 
 **Ursache:** Die Ressource wurde nicht korrekt installiert oder falsch benannt.  
 **Lösung:** Stelle sicher, dass:
-- Das Verzeichnis `resources/[rgo]/ox_core` existiert und eine `fxmanifest.lua` enthält.
-- `ensure ox_core` in der `server.cfg` vorhanden ist.
+- Das Verzeichnis `resources/[rgo]/rgo_core` existiert und eine `fxmanifest.lua` enthält.
+- `ensure rgo_core` in der `server.cfg` vorhanden ist.
 - Keine Tipp-Fehler im Verzeichnisnamen vorliegen.
 
 ---
@@ -973,14 +973,14 @@ rgo_core-/
 ### ❌ ESX-Skript meldet „es_extended not found"
 
 **Ursache:** Der ESX-Kompatibilitäts-Layer ist nicht aktiviert.  
-**Lösung:** Füge `ensure es_extended` **nach** `ensure ox_core` in der `server.cfg` ein.
+**Lösung:** Füge `ensure es_extended` **nach** `ensure rgo_core` in der `server.cfg` ein.
 
 ---
 
 ### ❌ QBCore-Skript meldet „QBCore not found"
 
 **Ursache:** Der QBCore-Kompatibilitäts-Layer ist nicht aktiviert.  
-**Lösung:** Füge `ensure QBCore` **nach** `ensure ox_core` in der `server.cfg` ein.
+**Lösung:** Füge `ensure QBCore` **nach** `ensure rgo_core` in der `server.cfg` ein.
 
 ---
 
@@ -1031,7 +1031,7 @@ bun run build
 **Ja!** Beide Layer können gleichzeitig aktiv sein:
 
 ```cfg
-ensure ox_core
+ensure rgo_core
 ensure es_extended
 ensure QBCore
 ```
@@ -1040,10 +1040,10 @@ Jeder Layer läuft vollständig unabhängig voneinander.
 
 ---
 
-### ❓ Muss ich ox_core oder es_extended heißen?
+### ❓ Muss ich rgo_core oder es_extended heißen?
 
 Nein. Die Ressourcennamen werden durch die `fxmanifest.lua`-`name`-Felder definiert:
-- `rgo_core` → Ressource heißt `ox_core` (über `name 'rgo_core'` und `ensure ox_core`)
+- `rgo_core` → Ressource heißt `rgo_core` (über `name 'rgo_core'` und `ensure rgo_core`)
 - `rgo_esx` → Ressource heißt `es_extended` (über `name 'es_extended'`)
 - `rgo_qb` → Ressource heißt `QBCore` (über `name 'QBCore'`)
 
@@ -1145,7 +1145,7 @@ local rows = exports.oxmysql:query_async(
 
 ### ox_lib für UI verwenden
 
-ox_lib bietet optimierte UI-Komponenten (Kontextmenüs, Progress-Bars, Input-Dialoge) die speziell für ox_core optimiert sind:
+ox_lib bietet optimierte UI-Komponenten (Kontextmenüs, Progress-Bars, Input-Dialoge) die speziell für rgo_core optimiert sind:
 
 ```lua
 -- Progress-Bar
@@ -1181,7 +1181,7 @@ Verwende stattdessen ein eigenes Präfix, z.B. `rgo_`, `meinserver_` oder einen 
 ## 📄 Lizenz
 
 Copyright © Real-Graz-Modding  
-Basiert auf [ox_core](https://github.com/overextended/ox_core) © Overextended
+Basiert auf [rgo_core](https://github.com/overextended/rgo_core) © Overextended
 
 Dieses Programm ist freie Software gemäß der  
 **GNU Lesser General Public License v3.0** (oder neuer).  

@@ -37,17 +37,17 @@ tasks:
   - action: download_github
     src: https://github.com/Real-Graz-Modding/rgo_core-
     ref: main
-    dest: ./resources/[rgo]/ox_core
+    dest: ./resources/[rgo]/rgo_core
   - action: replace_string
-    file: ./resources/[rgo]/ox_core/sql/install.sql
+    file: ./resources/[rgo]/rgo_core/sql/install.sql
     search: "overextended"
     replace: "{{dbName}}"
   - action: replace_string
     mode: all_vars
     file:
-      - ./resources/[rgo]/ox_core/sql/install.sql
+      - ./resources/[rgo]/rgo_core/sql/install.sql
   - action: query_database
-    file: ./resources/[rgo]/ox_core/sql/install.sql
+    file: ./resources/[rgo]/rgo_core/sql/install.sql
   ## rgo_esx – ESX-Kompatibilitäts-Layer (als es_extended installiert)
   - action: download_github
     src: https://github.com/Real-Graz-Modding/rgo_core-

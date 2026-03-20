@@ -148,7 +148,7 @@ export class OxVehicle extends ClassInterface {
   }
 
   static saveAll(resource?: string) {
-    if (resource === 'ox_core') resource = '';
+    if (resource === 'rgo_core') resource = '';
 
     const parameters = [];
 

@@ -25,14 +25,14 @@ function OxAccount:constructor(data)
 end
 
 function OxAccount:__call(...)
-    return exports.ox_core:CallAccount(self.accountId, ...)
+    return exports.rgo_core:CallAccount(self.accountId, ...)
 end
 
 function OxAccount:__tostring()
     return json.encode(self, { indent = true })
 end
 
-for method in pairs(exports.ox_core:GetAccountCalls() or {}) do
+for method in pairs(exports.rgo_core:GetAccountCalls() or {}) do
     if not rawget(OxAccount, method) then OxAccount[method] = OxAccount.__call end
 end
 
@@ -46,21 +46,21 @@ end
 local Ox = Ox
 
 function Ox.GetAccount(accountId)
-    local account = exports.ox_core:GetAccount(accountId)
+    local account = exports.rgo_core:GetAccount(accountId)
     return CreateAccountInstance(account)
 end
 
 function Ox.GetCharacterAccount(charId)
-    local account = exports.ox_core:GetCharacterAccount(charId)
+    local account = exports.rgo_core:GetCharacterAccount(charId)
     return CreateAccountInstance(account)
 end
 
 function Ox.GetGroupAccount(groupName)
-    local account = exports.ox_core:GetGroupAccount(groupName)
+    local account = exports.rgo_core:GetGroupAccount(groupName)
     return CreateAccountInstance(account)
 end
 
 function Ox.CreateAccount(owner, label)
-    local account = exports.ox_core:CreateAccount(owner, label)
+    local account = exports.rgo_core:CreateAccount(owner, label)
     return CreateAccountInstance(account)
 end

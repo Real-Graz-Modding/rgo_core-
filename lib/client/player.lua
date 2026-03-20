@@ -21,7 +21,7 @@ end
 
 function OxPlayer:constructor()
     pcall(function()
-        local data = exports.ox_core.GetPlayer()
+        local data = exports.rgo_core.GetPlayer()
 
         self.userId = data.userId
         self.charId = data.charId
@@ -32,7 +32,7 @@ function OxPlayer:constructor()
 end
 
 function OxPlayer:__call(...)
-    return exports.ox_core:CallPlayer(...)
+    return exports.rgo_core:CallPlayer(...)
 end
 
 function OxPlayer:__tostring()
@@ -46,7 +46,7 @@ function OxPlayer:on(key, callback)
     self.get(key)
 
     AddEventHandler(('ox:player:%s'):format(key), function(data)
-        if GetInvokingResource() == 'ox_core' and source == '' then
+        if GetInvokingResource() == 'rgo_core' and source == '' then
             callback(data)
         end
     end)
@@ -97,12 +97,12 @@ function Ox.GetPlayer()
 end
 
 local function getMethods()
-    for method in pairs(exports.ox_core:GetPlayerCalls()) do
+    for method in pairs(exports.rgo_core:GetPlayerCalls()) do
         if not rawget(OxPlayer, method) then OxPlayer[method] = OxPlayer.__call end
     end
 end
 
--- Prevent errors if resource starts before ox_core (generally during development)
+-- Prevent errors if resource starts before rgo_core (generally during development)
 if not pcall(getMethods) then CreateThread(getMethods) end
 
 AddEventHandler('ox:playerLoaded', function(data)

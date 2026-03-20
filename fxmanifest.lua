@@ -1,7 +1,7 @@
 name 'rgo_core'
 author 'Real-Graz-Modding'
 version '1.0.0'
-description 'Ein modernes FiveM-Framework von Real-Graz-Modding, basierend auf ox_core.'
+description 'Ein modernes FiveM-Framework von Real-Graz-Modding, basierend auf rgo_core.'
 fx_version 'cerulean'
 game 'gta5'
 node_version '22'

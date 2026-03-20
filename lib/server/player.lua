@@ -25,7 +25,7 @@ function OxPlayer:constructor(data)
 end
 
 function OxPlayer:__call(...)
-    return exports.ox_core:CallPlayer(self.source, ...)
+    return exports.rgo_core:CallPlayer(self.source, ...)
 end
 
 function OxPlayer:__tostring()
@@ -63,7 +63,7 @@ function OxPlayer:getGroupByType(type)
     end
 end
 
-for method in pairs(exports.ox_core:GetPlayerCalls() or {}) do
+for method in pairs(exports.rgo_core:GetPlayerCalls() or {}) do
     if not rawget(OxPlayer, method) then OxPlayer[method] = OxPlayer.__call end
 end
 
@@ -77,19 +77,19 @@ end
 local Ox = Ox
 
 function Ox.GetPlayer(playerId)
-    return CreatePlayerInstance(exports.ox_core:GetPlayer(playerId))
+    return CreatePlayerInstance(exports.rgo_core:GetPlayer(playerId))
 end
 
 function Ox.GetPlayerFromUserId(userId)
-    return CreatePlayerInstance(exports.ox_core:GetPlayerFromUserId(userId))
+    return CreatePlayerInstance(exports.rgo_core:GetPlayerFromUserId(userId))
 end
 
 function Ox.GetPlayerFromCharId(charId)
-    return CreatePlayerInstance(exports.ox_core:GetPlayerFromCharId(charId))
+    return CreatePlayerInstance(exports.rgo_core:GetPlayerFromCharId(charId))
 end
 
 function Ox.GetPlayers(filter)
-    local players = exports.ox_core:GetPlayers(filter)
+    local players = exports.rgo_core:GetPlayers(filter)
 
     for i = 1, #players do
         players[i] = CreatePlayerInstance(players[i])
@@ -99,5 +99,5 @@ function Ox.GetPlayers(filter)
 end
 
 function Ox.GetPlayerFromFilter(filter)
-    return CreatePlayerInstance(exports.ox_core:GetPlayerFromFilter(filter))
+    return CreatePlayerInstance(exports.rgo_core:GetPlayerFromFilter(filter))
 end

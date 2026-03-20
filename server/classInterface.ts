@@ -32,13 +32,13 @@ export class ClassInterface {
     const name = this.name;
     const expName = this.name.replace('Ox', '');
 
-    // e.g. exports.ox_core.GetPlayer
+    // e.g. exports.rgo_core.GetPlayer
     exports(`Get${expName}`, (id: string | number) => this.get(id));
 
-    // e.g. exports.ox_core.GetPlayerCalls
+    // e.g. exports.rgo_core.GetPlayerCalls
     exports(`Get${expName}Calls`, () => this.callableMethods);
 
-    // e.g. exports.ox_core.CallPlayer
+    // e.g. exports.rgo_core.CallPlayer
     exports(`Call${expName}`, (id: string | number, method: string, ...args: any[]) => {
       // Maintain backwards compatibility with OxVehicle indexed by entityId..
       const member = expName === 'Vehicle' && typeof id === 'number' ? this.keys?.entity[id] : this.get(id);

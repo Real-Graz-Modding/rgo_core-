@@ -527,7 +527,7 @@ var init_vehicles = __esm({
 
 // common/index.ts
 function LoadDataFile(file) {
-  return JSON.parse(LoadResourceFile("ox_core", `/common/data/${file}.json`));
+  return JSON.parse(LoadResourceFile(GetCurrentResourceName(), `/common/data/${file}.json`));
 }
 function GetGroupPermissions(groupName) {
   return GlobalState[`group.${groupName}:permissions`] || {};
@@ -4909,8 +4909,8 @@ var init_parser = __esm({
             `^3Failed to parse data for ${response[2].length} invalid vehicles.
 ${JSON.stringify(response[2], null, 2)}^0`
           );
-        SaveResourceFile("ox_core", "/common/data/vehicleStats.json", JSON.stringify(updatedStats, null, 2), -1);
-        SaveResourceFile("ox_core", "/common/data/vehicles.json", JSON.stringify(updatedVehicles, null, 2), -1);
+        SaveResourceFile(GetCurrentResourceName(), "/common/data/vehicleStats.json", JSON.stringify(updatedStats, null, 2), -1);
+        SaveResourceFile(GetCurrentResourceName(), "/common/data/vehicles.json", JSON.stringify(updatedVehicles, null, 2), -1);
       },
       {
         help: "Parses and generates vehicle data for all vehicle models available on a client.",
@@ -22714,7 +22714,7 @@ on("ox:playerLogout", (playerId) => {
       }
 });
 on("onResourceStop", (resource) => {
-  if (resource !== "ox_core") return;
+  if (resource !== "rgo_core") return;
   const players = OxPlayer.getAll();
   for (const id in players) {
     const player = players[id];
@@ -23723,7 +23723,7 @@ var OxVehicle = class _OxVehicle extends ClassInterface {
     }
   }
   static saveAll(resource) {
-    if (resource === "ox_core") resource = "";
+    if (resource === "rgo_core") resource = "";
     const parameters = [];
     for (const id in this.members) {
       const vehicle = this.members[id];
@@ -23940,7 +23940,7 @@ async function CreateVehicle(data, coords, heading, invokingScript = GetInvoking
   if (!vehicleData)
     throw new Error(
       `Failed to create vehicle '${data.model}' (model is invalid).
-Ensure vehicle exists in '@ox_core/common/data/vehicles.json'`
+Ensure vehicle exists in '@rgo_core/common/data/vehicles.json'`
     );
   if (data.id) {
     const vehicle2 = OxVehicle.getFromVehicleId(data.id);
@@ -24003,7 +24003,7 @@ exports("SpawnVehicle", SpawnVehicle);
 // server/index.ts
 init_server();
 if (!DEBUG) {
-  versionCheck("communityox/ox_core");
+  versionCheck("Real-Graz-Modding/rgo_core-");
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

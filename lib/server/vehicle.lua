@@ -25,7 +25,7 @@ function OxVehicle:constructor(data)
 end
 
 function OxVehicle:__call(...)
-    return exports.ox_core:CallVehicle(self.vin, ...)
+    return exports.rgo_core:CallVehicle(self.vin, ...)
 end
 
 function OxVehicle:__tostring()
@@ -40,7 +40,7 @@ function OxVehicle:getState()
     return Entity(self.entity).state;
 end
 
-for method in pairs(exports.ox_core:GetVehicleCalls() or {}) do
+for method in pairs(exports.rgo_core:GetVehicleCalls() or {}) do
     if not rawget(OxVehicle, method) then OxVehicle[method] = OxVehicle.__call end
 end
 
@@ -58,19 +58,19 @@ function Ox.GetVehicle(handle)
 end
 
 function Ox.GetVehicleFromEntity(entityId)
-    return CreateVehicleInstance(exports.ox_core:GetVehicleFromEntity(entityId))
+    return CreateVehicleInstance(exports.rgo_core:GetVehicleFromEntity(entityId))
 end
 
 function Ox.GetVehicleFromNetId(netId)
-    return CreateVehicleInstance(exports.ox_core:GetVehicleFromNetId(netId))
+    return CreateVehicleInstance(exports.rgo_core:GetVehicleFromNetId(netId))
 end
 
 function Ox.GetVehicleFromVin(vin)
-    return CreateVehicleInstance(exports.ox_core:GetVehicleFromVin(vin))
+    return CreateVehicleInstance(exports.rgo_core:GetVehicleFromVin(vin))
 end
 
 function Ox.GetVehicles(filter)
-    local vehicles = exports.ox_core:GetVehicles(filter)
+    local vehicles = exports.rgo_core:GetVehicles(filter)
 
     for i = 1, #vehicles do
         vehicles[i] = CreateVehicleInstance(vehicles[i])
@@ -80,13 +80,13 @@ function Ox.GetVehicles(filter)
 end
 
 function Ox.GetVehicleFromFilter(filter)
-    return CreateVehicleInstance(exports.ox_core:GetVehicleFromFilter(filter))
+    return CreateVehicleInstance(exports.rgo_core:GetVehicleFromFilter(filter))
 end
 
 function Ox.CreateVehicle(data, coords, heading)
-    return CreateVehicleInstance(exports.ox_core:CreateVehicle(data, coords, heading));
+    return CreateVehicleInstance(exports.rgo_core:CreateVehicle(data, coords, heading));
 end
 
 function Ox.SpawnVehicle(dbId, coords, heading)
-    return CreateVehicleInstance(exports.ox_core:SpawnVehicle(dbId, coords, heading));
+    return CreateVehicleInstance(exports.rgo_core:SpawnVehicle(dbId, coords, heading));
 end

@@ -25,8 +25,8 @@ addCommand<{ parseAll: boolean }>(
         `^3Failed to parse data for ${response[2].length} invalid vehicles.\n${JSON.stringify(response[2], null, 2)}^0`,
       );
 
-    SaveResourceFile('ox_core', '/common/data/vehicleStats.json', JSON.stringify(updatedStats, null, 2), -1);
-    SaveResourceFile('ox_core', '/common/data/vehicles.json', JSON.stringify(updatedVehicles, null, 2), -1);
+    SaveResourceFile(GetCurrentResourceName(), '/common/data/vehicleStats.json', JSON.stringify(updatedStats, null, 2), -1);
+    SaveResourceFile(GetCurrentResourceName(), '/common/data/vehicles.json', JSON.stringify(updatedVehicles, null, 2), -1);
   },
   {
     help: 'Parses and generates vehicle data for all vehicle models available on a client.',

@@ -68,7 +68,7 @@ on('ox:playerLogout', (playerId: number) => {
 });
 
 on('onResourceStop', (resource: string) => {
-  if (resource !== 'ox_core') return;
+  if (resource !== 'rgo_core') return;
 
   const players = OxPlayer.getAll();
 
